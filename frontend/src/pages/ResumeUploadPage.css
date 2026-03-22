@@ -1,0 +1,115 @@
+.resume-upload-page {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #EEEEEE;
+  padding: 24px;
+}
+
+.resume-upload__container {
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.resume-upload__header h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #222831;
+  margin-bottom: 8px;
+}
+
+.resume-upload__header p {
+  color: #393E46;
+  opacity: 0.7;
+  margin-bottom: 32px;
+}
+
+.resume-upload__dropzone {
+  border: 2px dashed #393E46;
+  border-radius: 12px;
+  padding: 40px 20px;
+  margin-bottom: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resume-upload__dropzone:hover {
+  border-color: #00ADB5;
+  background-color: rgba(0, 173, 181, 0.02);
+}
+
+.resume-upload__dropzone.active {
+  border-color: #00ADB5;
+  background-color: rgba(0, 173, 181, 0.05);
+}
+
+.upload-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #393E46;
+}
+
+.file-types {
+  font-size: 0.8rem;
+  opacity: 0.5;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #222831;
+  font-weight: 600;
+}
+
+.resume-upload__btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #00ADB5;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resume-upload__btn:hover:not(:disabled) {
+  background-color: #008D94;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 173, 181, 0.3);
+}
+
+.resume-upload__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.resume-upload__error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #ff4d4d;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.resume-upload__success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #00ADB5;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}

@@ -1,0 +1,117 @@
+.applied-jobs-page {
+  animation: fadeIn 0.5s ease;
+}
+
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-header h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #222831;
+}
+
+.page-header p {
+  color: #393E46;
+  opacity: 0.7;
+}
+
+.applications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.app-card {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+
+.app-card:hover {
+  border-color: #00ADB5;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.app-card__info h3 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+  color: #222831;
+}
+
+.app-card__info span {
+  font-size: 0.9rem;
+  color: #00ADB5;
+  font-weight: 600;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-badge.applied {
+  background: rgba(0, 173, 181, 0.1);
+  color: #00ADB5;
+}
+
+.status-badge.interview {
+  background: rgba(255, 204, 0, 0.1);
+  color: #b38f00;
+}
+
+.status-badge.rejected {
+  background: rgba(255, 77, 77, 0.1);
+  color: #ff4d4d;
+}
+
+.status-badge.closed {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+}
+
+.app-date {
+  display: block;
+  font-size: 0.8rem;
+  color: #393E46;
+  opacity: 0.5;
+  margin-top: 4px;
+}
+
+.app-card__timeline {
+  display: flex;
+  gap: 20px;
+  opacity: 0.6;
+}
+
+.timeline-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.view-details-btn {
+  background: none;
+  border: none;
+  color: #393E46;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.view-details-btn:hover {
+  color: #00ADB5;
+}

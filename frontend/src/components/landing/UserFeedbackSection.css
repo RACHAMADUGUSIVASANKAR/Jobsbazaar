@@ -1,0 +1,112 @@
+.user-feedback {
+  background: #000000;
+  padding: 100px 0;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.user-feedback__title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #00ADB5;
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.user-feedback__loop-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.user-feedback__loop-track {
+  display: flex;
+  gap: 18px;
+  width: max-content;
+  animation: feedback-loop 48s linear infinite;
+}
+
+.user-feedback__loop-track--reverse {
+  animation-direction: reverse;
+  animation-duration: 56s;
+}
+
+.user-feedback__card {
+  width: clamp(280px, 30vw, 360px);
+  background: #1a1a1a;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 173, 181, 0.1);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.user-feedback__card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(0, 173, 181, 0.3);
+}
+
+.user-feedback__card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.user-feedback__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #2b2b2b;
+}
+
+.user-feedback__name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.user-feedback__role {
+  font-size: 0.85rem;
+  color: #00ADB5;
+}
+
+.user-feedback__text {
+  font-size: 0.95rem;
+  color: #cccccc;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+@keyframes feedback-loop {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 1100px) {
+  .user-feedback__loop-track {
+    animation-duration: 34s;
+  }
+
+  .user-feedback__loop-track--reverse {
+    animation-duration: 38s;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-feedback {
+    padding: 60px 0;
+  }
+
+  .user-feedback__title {
+    font-size: 2rem;
+  }
+
+  .user-feedback__loop-track {
+    animation-duration: 28s;
+  }
+}

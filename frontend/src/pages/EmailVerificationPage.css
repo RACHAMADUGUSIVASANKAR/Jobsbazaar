@@ -1,0 +1,10 @@
+.verify-page { min-height: 100vh; background: #EEEEEE; }
+.verify-page__wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 100px 24px 40px; }
+.verify-page__card { background: #fff; border-radius: 20px; padding: 60px 40px; text-align: center; max-width: 460px; width: 100%; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+.verify-page__spinner { width: 40px; height: 40px; border: 3px solid rgba(0,173,181,0.2); border-top-color: #00ADB5; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 24px; }
+.verify-page__icon { margin-bottom: 24px; display: flex; justify-content: center; }
+.verify-page__title { font-size: 1.5rem; font-weight: 700; color: #222831; margin-bottom: 12px; }
+.verify-page__text { font-size: 0.95rem; color: #393E46; }
+.verify-page__btn { display: inline-block; margin-top: 24px; padding: 12px 32px; background: #00ADB5; color: #fff; border-radius: 10px; font-weight: 600; text-decoration: none; transition: background 0.2s; }
+.verify-page__btn:hover { background: #009DA5; }
+@keyframes spin { to { transform: rotate(360deg); } }

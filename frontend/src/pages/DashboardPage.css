@@ -1,0 +1,7 @@
+.dashboard-page { min-height: 100vh; background: #EEEEEE; }
+.dashboard-page__wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 100px 24px 40px; }
+.dashboard-page__content { background: #fff; border-radius: 20px; padding: 60px 40px; text-align: center; max-width: 600px; width: 100%; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+.dashboard-page__title { font-size: 2rem; font-weight: 800; color: #00ADB5; margin-bottom: 16px; }
+.dashboard-page__desc { font-size: 1rem; color: #393E46; line-height: 1.6; margin-bottom: 24px; }
+.dashboard-page__btn { display: inline-block; padding: 12px 32px; background: #00ADB5; color: #fff; border-radius: 10px; font-weight: 600; text-decoration: none; transition: background 0.2s; }
+.dashboard-page__btn:hover { background: #009DA5; }

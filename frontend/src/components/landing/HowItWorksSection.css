@@ -1,0 +1,95 @@
+.how-it-works {
+  background: #000000;
+}
+
+.how-it-works .section-title {
+  color: #10d5dc;
+}
+
+.how-it-works__velocity {
+  margin-bottom: 60px;
+  overflow: hidden;
+}
+
+.how-it-works__velocity-text {
+  color: #12dbe2;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  opacity: 0.35;
+  text-shadow: 0 0 22px rgba(18, 219, 226, 0.2);
+}
+
+.how-it-works__velocity .scroller {
+  font-size: clamp(2rem, 5vw, 3.75rem);
+  line-height: 1.05;
+}
+
+.how-it-works__steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  position: relative;
+}
+
+.how-it-works__step {
+  text-align: center;
+  position: relative;
+}
+
+.how-it-works__step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #00ADB5;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+.how-it-works__step-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.how-it-works__step-desc {
+  font-size: 0.9rem;
+  color: #bdbdbd;
+  line-height: 1.6;
+}
+
+.how-it-works__step-connector {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .how-it-works__step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 32px;
+    right: -16px;
+    width: 32px;
+    height: 2px;
+    background: linear-gradient(90deg, #00ADB5, rgba(0, 173, 181, 0.2));
+  }
+}
+
+@media (max-width: 1024px) {
+  .how-it-works__steps {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .how-it-works__steps {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
