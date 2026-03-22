@@ -279,7 +279,7 @@ export const googleCallback = async (request, reply) => {
   try {
     const { code } = request.query;
     if (!code) {
-      return reply.redirect(`${normalizeFrontendUrl()}/login?oauthError=missing_code`);
+      return reply.redirect(`${normalizeFrontendUrl()}/?oauthError=missing_code`);
     }
 
     const oauth2Client = new google.auth.OAuth2(
@@ -295,7 +295,7 @@ export const googleCallback = async (request, reply) => {
     const { data } = await oauth2.userinfo.get();
 
     if (!data?.id || !data?.email) {
-      return reply.redirect(`${normalizeFrontendUrl()}/login?oauthError=profile_missing`);
+      return reply.redirect(`${normalizeFrontendUrl()}/?oauthError=profile_missing`);
     }
 
     const user = await findOrCreateGoogleUser({
@@ -311,10 +311,10 @@ export const googleCallback = async (request, reply) => {
       { expiresIn: '7d' }
     );
 
-    return reply.redirect(`${normalizeFrontendUrl()}/login?token=${encodeURIComponent(token)}&oauth=success`);
+    return reply.redirect(`${normalizeFrontendUrl()}/?token=${encodeURIComponent(token)}&oauth=success`);
   } catch (error) {
     console.error('Google callback error:', error);
-    return reply.redirect(`${normalizeFrontendUrl()}/login?oauthError=callback_failed`);
+    return reply.redirect(`${normalizeFrontendUrl()}/?oauthError=callback_failed`);
   }
 };
 

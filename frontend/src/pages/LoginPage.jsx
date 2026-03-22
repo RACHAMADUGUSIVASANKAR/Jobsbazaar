@@ -90,7 +90,7 @@ const LoginPage = () => {
         setSuccess(true);
         localStorage.setItem('token', data.token);
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          navigate('/dashboard', { replace: true });
         }, 1500);
       }
     } catch (err) {

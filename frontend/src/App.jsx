@@ -104,6 +104,22 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const oauthToken = params.get('token');
+    const oauthError = params.get('oauthError');
+
+    if (oauthToken) {
+      localStorage.setItem('token', oauthToken);
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+
+    if (oauthError) {
+      navigate(`/login?oauthError=${encodeURIComponent(oauthError)}`, { replace: true });
+    }
+  }, [location.search, navigate]);
+
+  useEffect(() => {
     const normalizedPath = location.pathname.replace(/\/+/g, '/');
     if (normalizedPath !== location.pathname) {
       navigate(`${normalizedPath}${location.search}${location.hash}`, { replace: true });
