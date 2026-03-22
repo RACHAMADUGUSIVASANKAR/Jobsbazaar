@@ -7,20 +7,14 @@ const readConfiguredBase = () => {
         const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
         if (hostname.includes('vercel.app') || hostname.includes('vercel.dev')) {
             // On Vercel preview/production, use the Render backend
-            console.log('🔍 Vercel detected, using Render backend');
             return 'https://jobsbazaar-1.onrender.com';
         }
-        console.log('⚠️ No API_BASE_URL configured and not on Vercel');
         return '';
     }
-    console.log('✅ API_BASE_URL from env:', raw);
     return trimTrailingSlash(raw);
 };
 
 const API_BASE_URL = readConfiguredBase();
-if (API_BASE_URL) {
-    console.log(`✅ API Base URL initialized: ${API_BASE_URL}`);
-}
 
 const isApiPath = (value = '') => String(value).startsWith('/api');
 
@@ -46,7 +40,6 @@ const initApiFetchInterceptor = () => {
         // Case 1: String URL with /api path
         if (typeof input === 'string' && isApiPath(input)) {
             const fullUrl = toApiUrl(input);
-            console.log(`🔄 Intercepted API call: ${input} → ${fullUrl}`, { method: init?.method || 'GET' });
             return originalFetch(fullUrl, init);
         }
 
@@ -55,7 +48,6 @@ const initApiFetchInterceptor = () => {
             const pathname = new URL(input.url).pathname;
             if (isApiPath(pathname)) {
                 const fullUrl = toApiUrl(pathname + new URL(input.url).search);
-                console.log(`🔄 Intercepted API request: ${pathname} → ${fullUrl}`, { method: input.method });
                 // Properly clone the request with the new URL while preserving method and body
                 return originalFetch(fullUrl, {
                     method: input.method,

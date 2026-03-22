@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BorderGlow from '../components/animations/BorderGlow';
 import GlareHover from '../components/animations/GlareHover';
+import { toApiUrl } from '../services/http';
 import './ResetPasswordPage.css';
 
 const getPasswordStrength = (pw) => {
@@ -44,7 +45,7 @@ const ResetPasswordPage = () => {
     setErrors({});
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await fetch(toApiUrl('/api/auth/reset-password'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password })

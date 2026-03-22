@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { toApiUrl } from '../services/http';
 import './EmailVerificationPage.css';
 
 const EmailVerificationPage = () => {
@@ -20,7 +21,7 @@ const EmailVerificationPage = () => {
       }
 
       try {
-        const response = await fetch('/api/auth/verify-email', {
+        const response = await fetch(toApiUrl('/api/auth/verify-email'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token })

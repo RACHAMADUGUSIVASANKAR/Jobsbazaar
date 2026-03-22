@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BorderGlow from '../components/animations/BorderGlow';
 import GlareHover from '../components/animations/GlareHover';
+import { toApiUrl } from '../services/http';
 import './ForgotPasswordPage.css';
 
 const ForgotPasswordPage = () => {
@@ -20,7 +21,7 @@ const ForgotPasswordPage = () => {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch(toApiUrl('/api/auth/forgot-password'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
