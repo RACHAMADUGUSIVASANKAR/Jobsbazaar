@@ -31,6 +31,7 @@ const defaultOrigins = [
 const allowedOrigins = new Set([...defaultOrigins, ...configuredOrigins]);
 const allowVercelPreview = process.env.CORS_ALLOW_VERCEL_PREVIEWS !== 'false';
 const isVercelOrigin = (origin = '') => /^https:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin);
+const isLocalDevOrigin = (origin = '') => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
 
 if (isProd && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your-secret-key-change-this')) {
   throw new Error('JWT_SECRET is required in production and must not use the default value.');
@@ -48,6 +49,11 @@ await fastify.register(cors, {
 
     const normalizedOrigin = trimTrailingSlash(origin);
     if (allowedOrigins.has(normalizedOrigin)) {
+      cb(null, true);
+      return;
+    }
+
+    if (!isProd && isLocalDevOrigin(normalizedOrigin)) {
       cb(null, true);
       return;
     }
