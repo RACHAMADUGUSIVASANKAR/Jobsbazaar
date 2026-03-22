@@ -7,14 +7,20 @@ const readConfiguredBase = () => {
         const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
         if (hostname.includes('vercel.app') || hostname.includes('vercel.dev')) {
             // On Vercel preview/production, use the Render backend
+            console.log('🔍 Vercel detected, using Render backend');
             return 'https://jobsbazaar-1.onrender.com';
         }
+        console.log('⚠️ No API_BASE_URL configured and not on Vercel');
         return '';
     }
+    console.log('✅ API_BASE_URL from env:', raw);
     return trimTrailingSlash(raw);
 };
 
 const API_BASE_URL = readConfiguredBase();
+if (API_BASE_URL) {
+    console.log(`✅ API Base URL initialized: ${API_BASE_URL}`);
+}
 
 const isApiPath = (value = '') => String(value).startsWith('/api');
 
@@ -37,14 +43,27 @@ const initApiFetchInterceptor = () => {
             return originalFetch(input, init);
         }
 
+        // Case 1: String URL with /api path
         if (typeof input === 'string' && isApiPath(input)) {
-            return originalFetch(toApiUrl(input), init);
+            const fullUrl = toApiUrl(input);
+            console.log(`🔄 Intercepted API call: ${input} → ${fullUrl}`, { method: init?.method || 'GET' });
+            return originalFetch(fullUrl, init);
         }
 
-        if (input instanceof Request && isApiPath(new URL(input.url).pathname)) {
-            const updatedUrl = toApiUrl(new URL(input.url).pathname + new URL(input.url).search);
-            const updatedRequest = new Request(updatedUrl, input);
-            return originalFetch(updatedRequest, init);
+        // Case 2: Request object with /api path
+        if (input instanceof Request) {
+            const pathname = new URL(input.url).pathname;
+            if (isApiPath(pathname)) {
+                const fullUrl = toApiUrl(pathname + new URL(input.url).search);
+                console.log(`🔄 Intercepted API request: ${pathname} → ${fullUrl}`, { method: input.method });
+                // Properly clone the request with the new URL while preserving method and body
+                return originalFetch(fullUrl, {
+                    method: input.method,
+                    headers: input.headers,
+                    body: input.body,
+                    ...init
+                });
+            }
         }
 
         return originalFetch(input, init);
