@@ -71,6 +71,9 @@ export const signup = async (request, reply) => {
     // Check duplicate email
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
+      if (existingUser.googleId && !existingUser.password) {
+        return reply.status(400).send({ message: 'This email is already registered with Google. Please use Continue with Google.' });
+      }
       return reply.status(400).send({ message: 'An account with this email already exists' });
     }
 
@@ -114,6 +117,11 @@ export const login = async (request, reply) => {
     // Security: Do not reveal if email exists or not
     if (!user) {
       return reply.status(401).send({ message: 'Invalid email or password' });
+    }
+
+    // Handle accounts created with Google OAuth that do not have a local password.
+    if (!user.password && user.googleId) {
+      return reply.status(400).send({ message: 'This account uses Google sign-in. Please click Continue with Google.' });
     }
 
     // Compare password
