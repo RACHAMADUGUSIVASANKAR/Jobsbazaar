@@ -2,7 +2,15 @@ const trimTrailingSlash = (value = '') => String(value || '').replace(/\/+$/, ''
 
 const readConfiguredBase = () => {
     const raw = import.meta.env.VITE_API_BASE_URL;
-    if (!raw) return '';
+    if (!raw) {
+        // Fallback: detect backend from hostname
+        const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+        if (hostname.includes('vercel.app') || hostname.includes('vercel.dev')) {
+            // On Vercel preview/production, use the Render backend
+            return 'https://jobsbazaar-1.onrender.com';
+        }
+        return '';
+    }
     return trimTrailingSlash(raw);
 };
 
