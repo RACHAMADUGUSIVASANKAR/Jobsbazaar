@@ -259,6 +259,29 @@
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    padding: 12px 0;
+  }
+
+  .navbar__container {
+    padding: 0 14px;
+    gap: 10px;
+  }
+
+  .navbar__logo {
+    gap: 8px;
+  }
+
+  .navbar__logo-text {
+    font-size: 1rem;
+    line-height: 1.1;
+  }
+
+  .navbar__logo-image {
+    width: 30px;
+    height: 30px;
+  }
+
   .navbar__center {
     display: none;
   }
@@ -269,5 +292,26 @@
 
   .navbar__hamburger {
     display: flex;
+    margin-left: auto;
+    padding: 6px;
+  }
+
+  .navbar__mobile-menu {
+    width: min(82vw, 300px);
+  }
+}
+
+@media (max-width: 420px) {
+  .navbar__container {
+    padding: 0 12px;
+  }
+
+  .navbar__logo-text {
+    font-size: 0.95rem;
+  }
+
+  .navbar__mobile-menu {
+    width: 100%;
+    max-width: 300px;
   }
 }

@@ -2,8 +2,9 @@ import dbService from '../utils/dbService.js';
 
 const baseFilters = {
     role: '',
+    skills: [],
     location: '',
-    skills: '',
+    jobType: '',
     workMode: 'All',
     matchScore: 'All',
     datePosted: 'Any'

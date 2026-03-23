@@ -14,11 +14,12 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ai-fab:hover {
   transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(0, 173, 181, 0.42);
 }
 
 .ai-panel {
@@ -46,6 +47,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header__ai-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
 }
 
 .header__title-group h3 {
@@ -85,6 +97,10 @@
   display: flex;
 }
 
+.message-enter {
+  animation: messageFadeIn 0.22s ease;
+}
+
 .message.user {
   align-self: flex-end;
 }
@@ -94,6 +110,7 @@
   border-radius: 12px;
   font-size: 0.9rem;
   line-height: 1.5;
+  word-break: break-word;
 }
 
 .message.user .message-bubble {
@@ -125,6 +142,7 @@
   color: #00ADB5;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 36px;
 }
 
 .suggestion-btn:hover {
@@ -150,6 +168,7 @@
 
 .input-box:focus-within {
   border-color: #00ADB5;
+  box-shadow: 0 0 0 3px rgba(0, 173, 181, 0.16);
 }
 
 .input-box input {
@@ -160,7 +179,8 @@
   color: #222831;
 }
 
-.voice-btn, .send-btn {
+.voice-btn,
+.send-btn {
   background: none;
   border: none;
   color: #393E46;
@@ -172,12 +192,129 @@
   justify-content: center;
   opacity: 0.6;
   transition: opacity 0.2s;
+  border-radius: 10px;
 }
 
 .send-btn {
   color: #00ADB5;
 }
 
-.voice-btn:hover, .send-btn:hover {
+.voice-btn:hover,
+.send-btn:hover {
   opacity: 1;
+}
+
+.typing {
+  align-self: flex-start;
+}
+
+.typing .message-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 44px;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8a8f9a;
+  animation: typingPulse 1s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes messageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typingPulse {
+
+  0%,
+  80%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.55;
+  }
+
+  40% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1024px) {
+  .ai-panel {
+    width: min(360px, calc(100vw - 18px));
+  }
+}
+
+@media (max-width: 768px) {
+  .ai-fab {
+    right: 14px;
+    bottom: 14px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .ai-panel {
+    width: 100vw;
+    right: -100vw;
+  }
+
+  .ai-panel__chat {
+    padding: 16px;
+  }
+
+  .ai-panel__suggestions {
+    padding: 12px 16px;
+  }
+
+  .ai-panel__input {
+    padding: 14px 16px 22px;
+  }
+}
+
+@media (max-width: 425px) {
+  .ai-panel__header {
+    padding: 16px;
+  }
+
+  .header__title-group h3 {
+    font-size: 1rem;
+  }
+
+  .header__title-group p {
+    font-size: 0.72rem;
+  }
+
+  .message {
+    max-width: 92%;
+  }
+
+  .suggestion-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .voice-btn,
+  .send-btn {
+    width: 40px;
+    height: 40px;
+  }
 }

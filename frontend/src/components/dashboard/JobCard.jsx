@@ -71,6 +71,37 @@ const JobCard = ({
     || explanation.experienceRelevance
     || 'Profile alignment is calculated from explicit overlaps between resume and job text.';
 
+  const categoryColors = {
+    frontend: '#FF6B92',
+    backend: '#4D96FF',
+    aiml: '#FFD93D',
+    cloud: '#6BCB77',
+    data: '#FF6B9D',
+    cybersecurity: '#D63031',
+    mobile: '#A29BFE',
+    devops: '#FF7675',
+    testing: '#74B9FF',
+    internship: '#81ECEC'
+  };
+
+  const getCategoryLabel = (category) => {
+    const labels = {
+      frontend: 'Frontend',
+      backend: 'Backend',
+      aiml: 'AI/ML',
+      cloud: 'Cloud',
+      data: 'Data',
+      cybersecurity: 'Security',
+      mobile: 'Mobile',
+      devops: 'DevOps',
+      testing: 'QA & Testing',
+      internship: 'Internship'
+    };
+    return labels[category] || category || 'Engineering';
+  };
+
+  const jobCategory = job.domainCategory || job.category || 'internship';
+
   return (
     <div className={`job-card ${isExpanded ? 'job-card--expanded' : ''}`}>
       <div className="job-card__content">
@@ -92,6 +123,15 @@ const JobCard = ({
         </div>
 
         <div className="job-card__source">
+          <span
+            className="source-badge"
+            style={{
+              backgroundColor: categoryColors[jobCategory] || categoryColors.internship,
+              color: '#fff'
+            }}
+          >
+            {getCategoryLabel(jobCategory)}
+          </span>
           <span className="source-badge">{sourceDisplay}</span>
         </div>
 

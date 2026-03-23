@@ -641,3 +641,196 @@ cp data/db.json.bak data/db.json
 - **Render Issues**: https://render.com/docs
 - **MongoDB Issues**: https://docs.mongodb.com/manual
 - **OpenAI Issues**: https://platform.openai.com/docs/guides/production-best-practices
+
+---
+
+# Phase 6: Deployment Hardening (NEW)
+
+## Worker Observability & Monitoring
+
+**Endpoint: `GET /api/admin/workers/stats`** (requires auth token)
+
+Returns current worker execution stats and database job counts.
+
+**Usage:**
+```bash
+curl -H "Authorization: Bearer <JWT_TOKEN>" \
+  https://your-render-backend.onrender.com/api/admin/workers/stats
+```
+
+**Example response:**
+```json
+{
+  "success": true,
+  "timestamp": "2026-03-22T14:30:00Z",
+  "workers": {
+    "fetch": {
+      "lastRun": "2026-03-22T14:30:00Z",
+      "lastDuration": 3421,
+      "runsTotal": 47,
+      "inserted": 38,
+      "reactivated": 2,
+      "missed": 15,
+      "closed": 1,
+      "lastError": null
+    },
+    "cleanup": {
+      "lastRun": "2026-03-22T12:00:00Z",
+      "lastDuration": 512,
+      "runsTotal": 8,
+      "checked": 245,
+      "closed": 3,
+      "lastError": null
+    },
+    "score": {
+      "lastRun": "2026-03-22T12:00:00Z",
+      "lastDuration": 8234,
+      "runsTotal": 8,
+      "scored": 187,
+      "updated": 187,
+      "lastError": null
+    }
+  },
+  "database": {
+    "activeJobs": 342,
+    "inactiveJobs": 12,
+    "totalJobs": 354
+  }
+}
+```
+
+**Endpoint: `GET /api/admin/deployment-status`** (requires auth token)
+
+Returns deployment health and worker readiness.
+
+**Usage:**
+```bash
+curl -H "Authorization: Bearer <JWT_TOKEN>" \
+  https://your-render-backend.onrender.com/api/admin/deployment-status
+```
+
+**Example response (production):**
+```json
+{
+  "success": true,
+  "environment": "production",
+  "isProd": true,
+  "timestamp": "2026-03-22T14:30:00Z",
+  "deployment": {
+    "mongodbConnected": true,
+    "corsLocked": true,
+    "jwt_secret_configured": true,
+    "frontend_url": "configured"
+  },
+  "workers": {
+    "fetch": {
+      "enabled": true,
+      "healthy": true,
+      "lastRun": "2026-03-22T14:30:00Z"
+    },
+    "cleanup": {
+      "enabled": true,
+      "healthy": true,
+      "lastRun": "2026-03-22T12:00:00Z"
+    },
+    "score": {
+      "enabled": true,
+      "healthy": true,
+      "lastRun": "2026-03-22T12:00:00Z"
+    }
+  }
+}
+```
+
+**Interpreting Results:**
+- `healthy: true` = worker ran within threshold (fetch: 20min, cleanup/score: 7h)
+- `healthy: false` = worker not running or stale (indicates issues)
+- `environment: "production"` with `isProd: true` = hardened mode
+- `corsLocked: true` = Vercel preview domains rejected
+
+## Production CORS & OAuth Hardening
+
+### CORS Locking (Phase 6b)
+
+**In production (NODE_ENV=production):**
+1. CORS strictly validates requests against `CORS_ORIGINS` list
+2. Vercel preview URLs are **explicitly rejected** with warning log
+3. Dev mode (localhost) always allowed regardless of env vars
+4. Only `FRONTEND_URL` should match production Vercel domain
+
+**Verification:**
+```bash
+# Try accessing from Vercel preview URL (should FAIL)
+curl -H "Origin: https://project-pr-123.vercel.app" \
+  https://your-render-backend.onrender.com/api/jobs
+
+# Expected response: 403 Forbidden
+# Log entry: [CORS] Production request rejected from Vercel preview: ...
+
+# Try from production URL (should SUCCEED)
+curl -H "Origin: https://your-vercel-domain.vercel.app" \
+  https://your-render-backend.onrender.com/api/jobs
+
+# Expected response: 200 OK
+```
+
+**Required Env Vars (Render):**
+```env
+NODE_ENV=production
+FRONTEND_URL=https://your-vercel-domain.vercel.app
+CORS_ORIGINS=https://your-vercel-domain.vercel.app
+CORS_ALLOW_VERCEL_PREVIEWS=false
+```
+
+### OAuth Hardening (Phase 6c)
+
+**Google OAuth Configuration:**
+
+1. **Google Cloud Console Setup**
+   - Go to https://console.cloud.google.com/
+   - APIs & Services → Credentials
+   - OAuth 2.0 Client ID → Edit
+   - Authorized Redirect URIs:
+     - `https://your-vercel-domain.vercel.app` (root)
+     - `https://your-vercel-domain.vercel.app/auth/callback`
+
+2. **Backend Environment**
+   ```env
+   GOOGLE_CLIENT_ID=123456789-abcdef.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=GOCSPX-abcdefghijklmnop
+   ```
+
+3. **Frontend Environment (Vercel)**
+   ```env
+   VITE_GOOGLE_CLIENT_ID=123456789-abcdef.apps.googleusercontent.com
+   ```
+
+4. **OAuth Flow Validation**
+   - Frontend redirects to Google → Google checks redirect URI against registered list
+   - Google redirects back to `https://your-vercel-domain.vercel.app/?token=...`
+   - Backend validates JWT token in Render logs
+   - Frontend app initializes with authenticated session
+
+**Troubleshooting OAuth:**
+- Redirect mismatch → Check exact URI in Google Console (trailing slash matters)
+- Token invalid → Verify JWT_SECRET matches across frontendtoken decode
+- CORS blocking → Check `/api/jobs` request includes Authorization header
+
+## Monitoring Checklist
+
+**Daily:**
+- [ ] Check `/api/admin/deployment-status` — all workers `healthy: true`
+- [ ] Verify no CORS rejection logs (check Render logs for `[CORS]` errors)
+- [ ] Confirm active jobs count > 0 and growing
+
+**Weekly:**
+- [ ] Jobs inserted this week > 50 (from `workers.fetch`)
+- [ ] No cleanup errors (check `workers.cleanup.lastError`)
+- [ ] Match scores distributed (some jobs 70+, some 40–70, some <40)
+
+**On Deployment:**
+- [ ] Worker stats show `runsTotal > 0` for all 3 workers
+- [ ] `corsLocked: true` response in deployment-status
+- [ ] No CORS rejection logs for legitimate Vercel domain
+
+---

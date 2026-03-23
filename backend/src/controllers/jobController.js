@@ -1,14 +1,12 @@
 import dbService from '../utils/dbService.js';
-import matchingEngine from '../utils/matchingEngine.js';
-import { syncLiveJobs } from '../utils/jobSyncService.js';
 import emailService from '../utils/emailService.js';
 import Job from '../models/Job.js';
 import { buildCacheKey, getCache, setCache } from '../utils/feedCache.js';
+import { fetchAndStoreJobs } from '../workers/jobFetcher.js';
+import { computeOnboardingState, normalizeSkills } from '../utils/onboarding.js';
 
-const STALE_MS = 15 * 60 * 1000;
 const DEFAULT_PAGE_SIZE = 25;
 const MAX_PAGE_SIZE = 250;
-const refreshState = new Map();
 
 const getLatestSeenTs = (jobs = []) => {
   const latest = jobs
@@ -25,49 +23,6 @@ const parsePositiveInt = (value, fallback, { min = 1, max = Number.MAX_SAFE_INTE
   return Math.min(max, Math.max(min, parsed));
 };
 
-const getRefreshKey = ({ role, location }) => `${String(role || '').toLowerCase()}::${String(location || '').toLowerCase()}`;
-
-const queueBackgroundRefresh = ({ role, location, reason = 'stale', closeMissing = false }) => {
-  const key = getRefreshKey({ role, location });
-  const state = refreshState.get(key) || { running: false, lastRunAt: null, lastResult: null, lastError: null };
-
-  if (state.running) {
-    return { queued: false, reason: 'already-running', state };
-  }
-
-  state.running = true;
-  refreshState.set(key, state);
-
-  setImmediate(async () => {
-    try {
-      const result = await syncLiveJobs({ role, location, closeMissing, resultsPerPage: 50 });
-      refreshState.set(key, {
-        running: false,
-        lastRunAt: new Date().toISOString(),
-        lastResult: { ...result, triggerReason: reason },
-        lastError: null
-      });
-    } catch (error) {
-      refreshState.set(key, {
-        running: false,
-        lastRunAt: new Date().toISOString(),
-        lastResult: null,
-        lastError: error?.message || 'Unknown sync error'
-      });
-      console.error('Background live refresh failed:', error);
-    }
-  });
-
-  return { queued: true, reason: 'scheduled', state: { ...state, running: true } };
-};
-
-const getActiveJobsSnapshot = async () => {
-  const jobs = await Job.find({ isActive: true })
-    .sort({ lastSeenAt: -1, updatedAt: -1 })
-    .lean();
-  return jobs;
-};
-
 const buildMongoFeedQuery = ({ role = '', location = '', query = {} } = {}) => {
   const mongoQuery = { isActive: true };
   const roleText = String(role || query.role || '').trim();
@@ -76,6 +31,7 @@ const buildMongoFeedQuery = ({ role = '', location = '', query = {} } = {}) => {
   const scoreBand = String(query.matchScore || '').trim();
   const skillsText = String(query.skills || '').trim();
   const datePosted = String(query.datePosted || '').trim();
+  const category = String(query.category || '').trim();
 
   if (roleText) {
     mongoQuery.$or = [
@@ -91,6 +47,10 @@ const buildMongoFeedQuery = ({ role = '', location = '', query = {} } = {}) => {
 
   if (skillsText) {
     mongoQuery.description = { $regex: skillsText, $options: 'i' };
+  }
+
+  if (category && category !== 'All') {
+    mongoQuery.domainCategory = category.toLowerCase();
   }
 
   if (workMode && workMode !== 'All') {
@@ -122,67 +82,71 @@ const buildMongoFeedQuery = ({ role = '', location = '', query = {} } = {}) => {
   return mongoQuery;
 };
 
-const paginate = (items = [], { page = 1, pageSize = DEFAULT_PAGE_SIZE } = {}) => {
-  const total = items.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const start = (safePage - 1) * pageSize;
-  const pagedItems = items.slice(start, start + pageSize);
-
-  return {
-    items: pagedItems,
-    meta: {
-      page: safePage,
-      pageSize,
-      total,
-      totalPages,
-      hasNext: safePage < totalPages,
-      hasPrev: safePage > 1
-    }
-  };
-};
-
-const ensureFreshActiveJobs = async ({ role, location, forceRefresh = false }) => {
-  const activeJobs = await getActiveJobsSnapshot();
-  const stale = Date.now() - getLatestSeenTs(activeJobs) > STALE_MS;
-  const shouldRefresh = forceRefresh || activeJobs.length < 5 || stale;
-
-  let refreshQueued = false;
-  if (shouldRefresh) {
-    const refreshResult = queueBackgroundRefresh({ role, location, reason: forceRefresh ? 'forced' : stale ? 'stale' : 'low-inventory', closeMissing: false });
-    refreshQueued = refreshResult.queued;
-  }
-
-  return {
-    jobs: activeJobs,
-    stale,
-    refreshQueued
-  };
-};
-
-const withMatchPayload = async (jobs = [], resumeText = '') => {
-  return Promise.all(jobs.map(async (job) => {
-    const match = await matchingEngine.analyzeMatch(resumeText, job.description);
-    return {
-      ...job,
-      matchScore: match.score,
-      matchExplanation: match.explanation,
-      matchPipeline: match.pipeline
-    };
-  }));
-};
-
 const nowIso = () => new Date().toISOString();
 
 const findUserByRequest = async (request) => {
   const profile = await dbService.find('users', (u) => u.id === request.user.id);
+  const onboarding = computeOnboardingState(profile);
   return {
     id: request.user.id,
     email: profile?.email || request.user?.email || '',
     name: profile?.name || profile?.email?.split('@')[0] || 'User',
-    resumeText: profile?.resumeText || ''
+    resumeText: profile?.resumeText || '',
+    skills: normalizeSkills(profile?.skills),
+    resumeSkills: normalizeSkills(profile?.resumeSkills),
+    resumeKeywords: Array.isArray(profile?.resumeKeywords) ? profile.resumeKeywords : [],
+    onboarding
   };
 };
+
+const tokenize = (text = '') => String(text || '')
+  .toLowerCase()
+  .replace(/[^a-z0-9\s]/g, ' ')
+  .split(/\s+/)
+  .filter((token) => token.length > 2);
+
+const computeFallbackMatchScore = ({ user, job }) => {
+  if (!user?.onboarding?.onboardingCompleted) return 0;
+
+  const sourceTokens = user?.onboarding?.hasResume
+    ? new Set([
+      ...tokenize(user.resumeText || ''),
+      ...tokenize((user.resumeSkills || []).join(' ')),
+      ...tokenize((user.resumeKeywords || []).join(' '))
+    ])
+    : new Set([
+      ...tokenize((user.skills || []).join(' '))
+    ]);
+
+  if (!sourceTokens.size) return 0;
+
+  const jobTokens = tokenize(`${job.title || ''} ${job.description || ''} ${(job.skills || []).join(' ')}`);
+  if (!jobTokens.length) return 15;
+
+  let overlap = 0;
+  jobTokens.forEach((token) => {
+    if (sourceTokens.has(token)) overlap += 1;
+  });
+
+  const ratio = overlap / Math.max(1, jobTokens.length);
+  return Math.max(12, Math.min(95, Math.round(ratio * 100)));
+};
+
+const withResolvedMatchScore = (jobs = [], user = {}) => jobs.map((job) => {
+  const currentScore = Number(job.matchScore || 0);
+  if (currentScore > 0) return job;
+
+  const fallback = computeFallbackMatchScore({ user, job });
+  if (!fallback) return job;
+
+  return {
+    ...job,
+    matchScore: fallback,
+    matchExplanation: job.matchExplanation || {
+      suggestions: 'Match score derived from your onboarding profile data and job requirements.'
+    }
+  };
+});
 
 const ensureJobForAction = async (jobId) => {
   const job = await Job.findOne({ id: String(jobId) }).lean();
@@ -222,13 +186,16 @@ const jobController = {
     try {
       const role = request.query?.role || 'Software Engineer';
       const location = request.query?.location || '';
-      const forceRefresh = request.query?.refresh === '1';
       const page = parsePositiveInt(request.query?.page, 1, { min: 1 });
       const pageSize = parsePositiveInt(request.query?.pageSize, DEFAULT_PAGE_SIZE, { min: 1, max: MAX_PAGE_SIZE });
 
       const user = await dbService.find('users', u => u.id === request.user.id);
-      if (!user?.resumeText) {
-        return reply.status(403).send({ message: 'Resume required for personalized matching' });
+      const onboarding = computeOnboardingState(user);
+      if (!onboarding.onboardingCompleted) {
+        return reply.status(403).send({
+          code: 'ONBOARDING_REQUIRED',
+          message: 'Complete profile details (name, gender, and skills) to unlock dashboard features.'
+        });
       }
 
       const cacheKey = buildCacheKey({
@@ -240,7 +207,7 @@ const jobController = {
         filters: request.query
       });
       const cached = getCache(cacheKey);
-      if (cached && !forceRefresh) {
+      if (cached) {
         return reply.status(200).send(cached);
       }
 
@@ -248,43 +215,38 @@ const jobController = {
       const [total, jobs] = await Promise.all([
         Job.countDocuments(mongoQuery),
         Job.find(mongoQuery)
-          .sort({ lastSeenAt: -1, createdAt: -1 })
+          .sort({ matchScore: -1, createdAt: -1 })
           .skip((page - 1) * pageSize)
           .limit(pageSize)
           .lean()
       ]);
 
-      const paged = paginate(jobs, { page, pageSize });
-      paged.meta.total = total;
-      paged.meta.totalPages = Math.max(1, Math.ceil(total / pageSize));
-      paged.meta.hasNext = page < paged.meta.totalPages;
-      paged.meta.hasPrev = page > 1;
+      const totalPages = Math.max(1, Math.ceil(total / pageSize));
+      const safePage = Math.min(page, totalPages);
+      const enrichedJobs = withResolvedMatchScore(jobs, {
+        resumeText: user?.resumeText || '',
+        skills: normalizeSkills(user?.skills),
+        resumeSkills: normalizeSkills(user?.resumeSkills),
+        resumeKeywords: Array.isArray(user?.resumeKeywords) ? user.resumeKeywords : [],
+        onboarding
+      });
 
       const latestSeenTs = await Job.findOne({ isActive: true })
         .sort({ lastSeenAt: -1 })
         .select('lastSeenAt')
         .lean();
-      const stale = Date.now() - new Date(latestSeenTs?.lastSeenAt || 0).getTime() > STALE_MS;
-
-      let refreshQueued = false;
-      if (forceRefresh || stale || total < 300) {
-        refreshQueued = queueBackgroundRefresh({
-          role,
-          location,
-          reason: forceRefresh ? 'forced' : (stale ? 'stale' : 'low-inventory'),
-          closeMissing: false
-        }).queued;
-      }
-
-      const jobsWithScores = await withMatchPayload(paged.items, user.resumeText);
-      const sortedPage = jobsWithScores.sort((a, b) => b.matchScore - a.matchScore);
 
       const responsePayload = {
-        items: sortedPage,
+        items: enrichedJobs,
         meta: {
-          ...paged.meta,
-          stale,
-          refreshQueued,
+          page: safePage,
+          pageSize,
+          total,
+          totalPages,
+          hasNext: safePage < totalPages,
+          hasPrev: safePage > 1,
+          stale: false,
+          refreshQueued: false,
           totalJobsWithGlobal: total,
           dbJobsCount: total,
           globalJobsCount: 0,
@@ -304,18 +266,17 @@ const jobController = {
     try {
       const role = request.body?.role || 'Software Engineer';
       const location = request.body?.location || '';
-      const closeMissing = Boolean(request.body?.closeMissing);
-      const queueResult = queueBackgroundRefresh({ role, location, reason: 'manual', closeMissing });
-      const key = getRefreshKey({ role, location });
-      const state = refreshState.get(key);
+      setImmediate(async () => {
+        try {
+          await fetchAndStoreJobs({ role, location, resultsPerPage: 50 });
+        } catch (error) {
+          console.error('Manual live refresh failed:', error);
+        }
+      });
 
       return reply.status(202).send({
-        message: queueResult.queued ? 'Live jobs refresh started' : 'Live jobs refresh already running',
-        queued: queueResult.queued,
-        running: state?.running || false,
-        lastRunAt: state?.lastRunAt || null,
-        lastResult: state?.lastResult || null,
-        lastError: state?.lastError || null
+        message: 'Live jobs refresh queued',
+        queued: true
       });
     } catch (error) {
       console.error('Refresh jobs error:', error);
@@ -329,24 +290,33 @@ const jobController = {
       const location = request.query?.location || '';
       const user = await dbService.find('users', u => u.id === request.user.id);
 
-      if (!user?.resumeText) {
-        return reply.status(403).send({ message: 'Resume required for personalized matching' });
+      const onboarding = computeOnboardingState(user);
+      if (!onboarding.onboardingCompleted) {
+        return reply.status(403).send({
+          code: 'ONBOARDING_REQUIRED',
+          message: 'Complete profile details (name, gender, and skills) to unlock dashboard features.'
+        });
       }
 
       const mongoQuery = buildMongoFeedQuery({ role, location, query: request.query || {} });
       const jobs = await Job.find(mongoQuery)
-        .sort({ lastSeenAt: -1, createdAt: -1 })
-        .limit(300)
+        .sort({ matchScore: -1, createdAt: -1 })
+        .limit(80)
         .lean();
 
-      const jobsWithScores = await withMatchPayload(jobs, user.resumeText);
+      const enriched = withResolvedMatchScore(jobs, {
+        resumeText: user?.resumeText || '',
+        skills: normalizeSkills(user?.skills),
+        resumeSkills: normalizeSkills(user?.resumeSkills),
+        resumeKeywords: Array.isArray(user?.resumeKeywords) ? user.resumeKeywords : [],
+        onboarding
+      });
 
-      const bestMatches = jobsWithScores
-        .filter(j => j.matchScore > 40)
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, 25);
-
-      return reply.status(200).send(bestMatches);
+      return reply.status(200).send(
+        enriched
+          .filter((job) => Number(job.matchScore || 0) > 40)
+          .slice(0, 8)
+      );
     } catch (error) {
       return reply.status(500).send({ message: 'Error fetching best matches' });
     }

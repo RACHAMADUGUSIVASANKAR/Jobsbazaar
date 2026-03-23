@@ -56,7 +56,7 @@ const CareerAnalyticsPage = () => {
         const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
         const [applicationsRes, feedRes, savedRes] = await Promise.all([
           fetch('/api/jobs/applications', { headers }),
-          fetch('/api/jobs/feed?page=1&pageSize=50', { headers }),
+          fetch('/api/jobs?page=1&pageSize=50', { headers }),
           fetch('/api/jobs/saved', { headers })
         ]);
 

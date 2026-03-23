@@ -60,7 +60,6 @@ const HeroSection = () => {
   return (
     <section className="hero" id="hero">
       <div className="hero__container container">
-        {/* Logo Loop */}
         <div className="hero__logo-loop">
           <LogoLoop
             logos={companyLogos}
@@ -76,64 +75,63 @@ const HeroSection = () => {
           />
         </div>
 
-        {/* Big Headline with Rotating Text */}
-        <h1 className="hero__title">
-          <span className="hero__title-static">Jobsbazaar that </span>
-          <span className="hero__title-rotating">
-            <RotatingText
-              texts={['Smart Matching', 'AI Resume Analysis', 'Real-Time Job Feed', 'Career Insights']}
-              mainClassName="hero__rotating-main"
-              staggerFrom="last"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '-120%' }}
-              staggerDuration={0.025}
-              splitLevelClassName="hero__rotating-split"
-              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-              rotationInterval={2500}
-            />
-          </span>
-        </h1>
+        <div className="hero__content">
+          <h1 className="hero__title">
+            <span className="hero__title-static">Jobsbazaar that </span>
+            <span className="hero__title-rotating">
+              <RotatingText
+                texts={['Smart Matching', 'AI Resume Analysis', 'Real-Time Job Feed', 'Career Insights']}
+                mainClassName="hero__rotating-main"
+                staggerFrom="last"
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '-120%' }}
+                staggerDuration={0.025}
+                splitLevelClassName="hero__rotating-split"
+                transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                rotationInterval={2500}
+              />
+            </span>
+          </h1>
 
-        {/* Short subtitle */}
-        <p className="hero__subtitle">
-          Stop wasting time on manual job applications. Let AI find, match, and track
-          the best opportunities for your career — automatically.
-        </p>
+          <p className="hero__subtitle">
+            Stop wasting time on manual job applications. Let AI find, match, and track
+            the best opportunities for your career automatically.
+          </p>
 
-        {/* 2 Buttons with Glare Hover */}
-        <div className="hero__buttons">
-          <GlareHover
-            width="auto"
-            height="auto"
-            background="#00ADB5"
-            borderRadius="12px"
-            borderColor="#00ADB5"
-            glareColor="#ffffff"
-            glareOpacity={0.3}
-            glareAngle={-30}
-            glareSize={300}
-            transitionDuration={800}
-            className="hero__btn-glare"
-          >
-            <Link to="/signup" className="hero__btn hero__btn--primary">Get Started</Link>
-          </GlareHover>
+          <div className="hero__buttons">
+            <GlareHover
+              width="auto"
+              height="auto"
+              background="#00ADB5"
+              borderRadius="12px"
+              borderColor="#00ADB5"
+              glareColor="#ffffff"
+              glareOpacity={0.3}
+              glareAngle={-30}
+              glareSize={300}
+              transitionDuration={800}
+              className="hero__btn-glare"
+            >
+              <Link to="/signup" className="hero__btn hero__btn--primary">Get Started</Link>
+            </GlareHover>
 
-          <GlareHover
-            width="auto"
-            height="auto"
-            background="transparent"
-            borderRadius="12px"
-            borderColor="#393E46"
-            glareColor="#00ADB5"
-            glareOpacity={0.2}
-            glareAngle={-30}
-            glareSize={300}
-            transitionDuration={800}
-            className="hero__btn-glare"
-          >
-            <Link to="/dashboard" className="hero__btn hero__btn--secondary">Try Demo Dashboard</Link>
-          </GlareHover>
+            <GlareHover
+              width="auto"
+              height="auto"
+              background="transparent"
+              borderRadius="12px"
+              borderColor="#393E46"
+              glareColor="#00ADB5"
+              glareOpacity={0.2}
+              glareAngle={-30}
+              glareSize={300}
+              transitionDuration={800}
+              className="hero__btn-glare"
+            >
+              <Link to="/dashboard" className="hero__btn hero__btn--secondary">Try Demo Dashboard</Link>
+            </GlareHover>
+          </div>
         </div>
       </div>
     </section>

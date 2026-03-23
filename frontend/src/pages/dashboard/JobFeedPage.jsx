@@ -56,6 +56,7 @@ const JobFeedPage = () => {
     role: '',
     location: '',
     skills: '',
+    category: 'All',
     workMode: 'All',
     matchScore: 'All',
     datePosted: 'Any'
@@ -86,11 +87,21 @@ const JobFeedPage = () => {
   useEffect(() => {
     const handleAiFilters = (event) => {
       const incoming = event.detail || {};
+
+      const incomingSkills = Array.isArray(incoming.skills)
+        ? incoming.skills.join(', ')
+        : (incoming.skills ?? filters.skills);
+
+      let incomingWorkMode = incoming.workMode ?? filters.workMode;
+      if (!incomingWorkMode && incoming.jobType) {
+        incomingWorkMode = incoming.jobType;
+      }
+
       const nextFilters = {
         role: incoming.role ?? filters.role,
         location: incoming.location ?? filters.location,
-        skills: incoming.skills ?? filters.skills,
-        workMode: incoming.workMode ?? filters.workMode,
+        skills: incomingSkills,
+        workMode: incomingWorkMode,
         matchScore: incoming.matchScore ?? filters.matchScore,
         datePosted: incoming.datePosted ?? incoming.postedWithin ?? filters.datePosted
       };
@@ -163,6 +174,7 @@ const JobFeedPage = () => {
         role: filters.role || 'software',
         location: filters.location || '',
         skills: filters.skills || '',
+        category: filters.category || 'All',
         workMode: filters.workMode || 'All',
         matchScore: filters.matchScore || 'All',
         datePosted: filters.datePosted || 'Any',
@@ -171,7 +183,7 @@ const JobFeedPage = () => {
       });
 
       const requests = [
-        fetch(`/api/jobs/feed?${queryParams.toString()}`, { headers }),
+        fetch(`/api/jobs?${queryParams.toString()}`, { headers }),
         shouldFetchUserLists ? fetch('/api/jobs/applications', { headers }) : Promise.resolve(null),
         shouldFetchUserLists ? fetch('/api/jobs/saved', { headers }) : Promise.resolve(null)
       ];
@@ -180,11 +192,13 @@ const JobFeedPage = () => {
 
       if (!jobsResponse.ok) {
         const jobsError = await safeParseJson(jobsResponse);
-        const isResumeMissing =
+        const onboardingRequired =
           jobsResponse.status === 403 &&
-          (jobsError?.code === 'RESUME_MISSING' || `${jobsError?.message || ''}`.toLowerCase().includes('resume'));
+          (jobsError?.code === 'ONBOARDING_REQUIRED'
+            || `${jobsError?.message || ''}`.toLowerCase().includes('complete profile')
+            || `${jobsError?.message || ''}`.toLowerCase().includes('onboarding'));
 
-        if (isResumeMissing) {
+        if (onboardingRequired) {
           setResumeRequired(true);
           setJobs([]);
           return;
@@ -474,6 +488,23 @@ const JobFeedPage = () => {
             onChange={(e) => setFilters({ ...filters, skills: e.target.value })}
           />
           <select
+            className={highlightedFilter === 'category' ? 'filter-highlight' : ''}
+            value={filters.category}
+            onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+          >
+            <option value="All">All Categories</option>
+            <option value="frontend">Frontend</option>
+            <option value="backend">Backend</option>
+            <option value="aiml">AI/ML</option>
+            <option value="cloud">Cloud</option>
+            <option value="data">Data</option>
+            <option value="cybersecurity">Security</option>
+            <option value="mobile">Mobile</option>
+            <option value="devops">DevOps</option>
+            <option value="testing">QA & Testing</option>
+            <option value="internship">Internship</option>
+          </select>
+          <select
             className={highlightedFilter === 'workMode' ? 'filter-highlight' : ''}
             value={filters.workMode}
             onChange={(e) => setFilters({ ...filters, workMode: e.target.value })}
@@ -549,11 +580,11 @@ const JobFeedPage = () => {
         <div className="feed-loading">Scanning real-time jobs...</div>
       ) : resumeRequired ? (
         <div className="no-jobs no-jobs--error">
-          <h4>Upload Resume To Unlock Job Matches</h4>
-          <p>Your dashboard needs your resume to personalize scores and recommendations.</p>
+          <h4>Complete Profile To Unlock Job Matches</h4>
+          <p>Add your name, gender, and at least one skill in Profile to unlock dashboard modules.</p>
           <div className="no-jobs__actions">
-            <button className="live-refresh-btn" onClick={() => navigate('/upload-resume')}>
-              Upload Resume
+            <button className="live-refresh-btn" onClick={() => navigate('/dashboard/profile')}>
+              Go To Profile
             </button>
           </div>
         </div>

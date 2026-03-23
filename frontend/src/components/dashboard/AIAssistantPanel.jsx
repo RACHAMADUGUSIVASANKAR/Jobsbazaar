@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FiMessageSquare, FiX, FiSend, FiMic } from 'react-icons/fi';
+import { FiMessageSquare, FiX, FiSend, FiMic, FiCpu } from 'react-icons/fi';
 import './AIAssistantPanel.css';
 
 const AIAssistantPanel = () => {
@@ -66,44 +66,22 @@ const AIAssistantPanel = () => {
 
       const data = await response.json();
 
-      const aiMsg = { role: 'assistant', text: data.message };
+      const aiMsg = { role: 'assistant', text: data.message || 'I updated your request.' };
       setMessages(prev => [...prev, aiMsg]);
 
-      const actionFromList = Array.isArray(data.actions) ? data.actions[0] : null;
-      const actionFromFunctionCall = data.uiFunctionCall
-        ? { type: data.uiFunctionCall.name, payload: data.uiFunctionCall.arguments || {} }
-        : null;
-      const action = actionFromFunctionCall || actionFromList;
-      const shouldApply = data.intent === 'filter_update'
-        || action?.type === 'apply_filters'
-        || action?.type === 'setFilters'
-        || action?.type === 'updateMatchScoreFilter'
-        || action?.type === 'searchBySkill'
-        || action?.type === 'searchByLocation';
-      const shouldClear = data.intent === 'clear_filters'
-        || action?.type === 'clear_filters'
-        || action?.type === 'resetFilters';
-      const shouldRefreshLive = action?.type === 'refresh_live_jobs';
-
-      if (shouldApply) {
-        window.dispatchEvent(new CustomEvent('updateFilters', { detail: action?.payload || data.filters || {} }));
-      }
-
-      if (shouldClear) {
+      if (data.intent === 'filter_update') {
+        const incoming = data.filters || {};
         window.dispatchEvent(new CustomEvent('updateFilters', {
           detail: {
-            role: '',
-            location: '',
-            skills: '',
-            workMode: 'All',
-            matchScore: 'All',
-            datePosted: 'Any'
+            role: incoming.role || '',
+            location: incoming.location || '',
+            skills: Array.isArray(incoming.skills) ? incoming.skills.join(', ') : (incoming.skills || ''),
+            workMode: incoming.workMode || 'All',
+            matchScore: incoming.matchScore || 'All',
+            datePosted: incoming.datePosted || 'Any',
+            jobType: incoming.jobType || ''
           }
         }));
-      }
-
-      if (shouldRefreshLive) {
-        window.dispatchEvent(new CustomEvent('assistantRefreshLiveJobs'));
       }
     } catch (err) {
       setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, I encountered an error. Please try again.' }]);
@@ -115,7 +93,7 @@ const AIAssistantPanel = () => {
   const suggestions = [
     "Show remote jobs",
     "Find React developer roles",
-    "High match scores only",
+    "Show jobs with high match score",
     "Internships for Python",
     "Jobs posted this week",
     "Clear all filters"
@@ -137,6 +115,7 @@ const AIAssistantPanel = () => {
       <div className={`ai-panel ${isOpen ? 'open' : ''}`}>
         <div className="ai-panel__header">
           <div className="header__title-group">
+            <span className="header__ai-icon" aria-hidden="true"><FiCpu /></span>
             <h3>AI Job Assistant</h3>
             <p>Helps you find better jobs faster</p>
           </div>
@@ -147,11 +126,19 @@ const AIAssistantPanel = () => {
 
         <div className="ai-panel__chat">
           {messages.map((msg, index) => (
-            <div key={`msg-${index}-${msg.role}`} className={`message ${msg.role}`}>
+            <div key={`msg-${index}-${msg.role}`} className={`message ${msg.role} message-enter`}>
               <div className="message-bubble">{msg.text}</div>
             </div>
           ))}
-          {isTyping && <div className="message assistant typing">Typing...</div>}
+          {isTyping && (
+            <div className="message assistant typing message-enter">
+              <div className="message-bubble">
+                <span className="typing-dot" />
+                <span className="typing-dot" />
+                <span className="typing-dot" />
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
 
@@ -167,10 +154,10 @@ const AIAssistantPanel = () => {
           <div className="input-box">
             <input
               type="text"
-              placeholder="Ask me anything..."
+              placeholder="Ask me to find jobs, filter roles, or help you use the dashboard"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             />
             <button className="voice-btn" onClick={handleVoiceInput} disabled={listening} title="Voice search">
               <FiMic />

@@ -523,3 +523,253 @@ After each release:
 2. Review error logs for new issues
 3. Measure performance against baselines
 4. Update this checklist with learnings
+
+---
+
+# Phase 7: Database-First Architecture Acceptance (NEW)
+
+## Database-First Job Aggregation (P7.1)
+
+### Jobs Stored in MongoDB
+
+- [ ] **P7.1.1: Initial Job Population**
+  - [ ] Backend container started successfully
+  - [ ] Logs show `[Worker:Fetch]` task executed
+  - [ ] MongoDB contains > 100 active jobs (check via `/api/admin/workers/stats`)
+  - [ ] Jobs from at least 2 sources verified (adzuna, remotive, or arbeitnow)
+  - [ ] Each job has externalId, applyUrl, postedDate, skills fields populated
+
+- [ ] **P7.1.2: Dashboard Feed Uses MongoDB Only**
+  - [ ] Frontend loads job feed (`GET /api/jobs`)
+  - [ ] Network tab shows 1 API call, no external API calls (Adzuna, Remotive, Arbeitnow)
+  - [ ] Response time < 500ms
+  - [ ] Response includes 20-50 jobs with matchScore field populated
+  - [ ] Jobs sorted by matchScore DESC, then createdAt DESC
+  - [ ] No "loading" or "fetching from" messages visible after initial load
+
+- [ ] **P7.1.3: Best Matches Use MongoDB Only**
+  - [ ] Frontend loads best matches (`GET /api/jobs/best-matches`)
+  - [ ] Network tab shows 1 API call, no external APIs called
+  - [ ] Response time < 200ms
+  - [ ] Returns 8 jobs with matchScore >= 40
+  - [ ] Each job includes matchExplanation field
+  - [ ] Explanation explains skill match and gaps (e.g., "You match 75% of required skills...")
+
+### No Live API Calls During Dashboard Rendering
+
+- [ ] **P7.1.4: Verify Zero Live API Calls**
+  - [ ] Open DevTools → Network tab (filter: XHR/Fetch)
+  - [ ] Login to dashboard (only /auth/callback shown)
+  - [ ] Navigate to Job Feed page
+  - [ ] Expected: only `GET /api/jobs` and `GET /api/jobs/best-matches` visible
+  - [ ] Unexpected sources NOT in network: adzuna.*, remotive.*, arbeitnow.*, openai.*
+  - [ ] Repeat for 5 page navigations, results consistent
+
+- [ ] **P7.1.5: API Refresh Response (202 Accepted)**
+  - [ ] Click "Refresh Jobs" button on dashboard
+  - [ ] Frontend receives `202 Accepted` response immediately (<100ms)
+  - [ ] Dashboard remains responsive (no spinner blocking)
+  - [ ] Job list does NOT change until next poll cycle (60s later)
+  - [ ] Check Render logs: `[Worker:Fetch]` task queued but not blocking request
+
+### Job Deduplication
+
+- [ ] **P7.1.6: Duplicate Suppression Across Sources**
+  - [ ] Same job posted on Adzuna and Remotive appears only once
+  - [ ] Deplication based on: title + company + location match
+  - [ ] Database field `externalId` differs but `dedupeHash` matches
+  - [ ] Verify via MongoDB query: count jobs where `isActive=true` << 3x raw fetches
+  - [ ] Cleanup worker marks old duplicate as `isActive=false` after 3 missed cycles
+
+- [ ] **P7.1.7: Job Lifecycle Tracking**
+  - [ ] Job fetched for first time: `missedFetchCycles = 0`
+  - [ ] Job skipped in next fetch: `missedFetchCycles = 1`
+  - [ ] After 3 missed cycles: `isActive = false` (cleanup worker runs)
+  - [ ] Inactive jobs still in database (not deleted) for history
+  - [ ] Verify via `/api/admin/workers/stats` — check `cleanup.closed` count
+
+---
+
+## Performance Targets (P7.2)
+
+### Dashboard Load Time (<2 seconds target)
+
+- [ ] **P7.2.1: Feed Page Initial Load**
+  - [ ] Measure: Open DevTools → Performance tab → disable cache
+  - [ ] Navigate to `/dashboard/feed`
+  - [ ] Measure: DOMContentLoaded + First Contentful Paint
+  - [ ] Expected: < 2000ms total (1000ms network + 1000ms render)
+  - [ ] Jobs visible and paginated successfully
+  - [ ] Test on: Chrome (4G throttle), Safari (4G throttle), Firefox (4G throttle)
+
+- [ ] **P7.2.2: Best Matches Page Load**
+  - [ ] Navigate to `/dashboard/best-matches`
+  - [ ] Expected: < 1500ms (mostly network constrained)
+  - [ ] 8 jobs with explanations visible
+  - [ ] Match score distribution:高 (70+), 中等 (40-70), low (<40) present
+
+- [ ] **P7.2.3: Filter & Search Performance (<1 second target)**
+  - [ ] On job feed, click filter button
+  - [ ] Type search query (e.g., "React")
+  - [ ] Results update within 800ms
+  - [ ] No layout shift or re-render jank (Cumulative Layout Shift < 0.1)
+  - [ ] Tested with 1000-row job list in database
+
+### Scalability (500–1000+ Jobs)
+
+- [ ] **P7.2.4: Database Querying at Scale**
+  - [ ] Seed MongoDB with 500-1000 active jobs
+  - [ ] Run 10 concurrent dashboard feed requests
+  - [ ] All complete in < 500ms (measured server-side)
+  - [ ] Database CPU stays < 30%
+  - [ ] No connection pool exhaustion errors
+
+- [ ] **P7.2.5: Filter Query Performance**
+  - [ ] Add database indexes verified: `(matchScore DESC, isActive)` and `(title, company, location)`
+  - [ ] Run 100 filter queries (sorting by match score) in parallel
+  - [ ] 95th percentile response < 200ms
+  - [ ] No MongoDB timeout errors
+
+---
+
+## Background Worker Cycles (P7.3)
+
+### 15-Minute Job Fetch Cycle
+
+- [ ] **P7.3.1: Fetch Executes Every 15 Minutes**
+  - [ ] Check Render logs: `[Worker:Fetch]` appears at :00, :15, :30, :45 of each hour
+  - [ ] Runs for 60–120 seconds (reasonable for fetching 3 sources)
+  - [ ] Worker stats endpoint shows `fetch.lastRun` within last 20 minutes
+  - [ ] Deploy and wait 20 minutes to observe at least 2 cycles
+
+- [ ] **P7.3.2: Fetch Inserts New Jobs**
+  - [ ] Call `/api/admin/workers/stats` immediately after fetch completes
+  - [ ] Check `workers.fetch.inserted` > 0 and `workers.fetch.reactivated` >= 0
+  - [ ] Database job count increases by ~50-100 per cycle (assuming new jobs available)
+  - [ ] Each fetched job has correct source, externalId, applyUrl
+
+- [ ] **P7.3.3: Fetch Marks Stale Jobs**
+  - [ ] In one fetch cycle, manually delete a job from external API mock (or wait for removal)
+  - [ ] In subsequent fetch, check `workers.fetch.missed` incremented for that job
+  - [ ] After 3 cycles of missed: job marked `isActive=false` by cleanup worker
+
+### 6-Hour Cleanup Cycle
+
+- [ ] **P7.3.4: Cleanup Marks Expired Jobs**
+  - [ ] Check Render logs: `[Worker:Cleanup]` appears every 6 hours (e.g., 00:00, 06:00, 12:00, 18:00 UTC)
+  - [ ] Call `/api/admin/workers/stats` after cleanup runs
+  - [ ] Check `workers.cleanup.closed` > 0 or = 0 if no expired (both acceptable)
+  - [ ] MongoDB: verify jobs with `missedFetchCycles >= 3` now have `isActive=false`
+
+- [ ] **P7.3.5: Cleanup Retention**
+  - [ ] Inactive jobs NOT deleted, remain in database with `isActive=false`
+  - [ ] User-applied jobs on inactive jobs still visible in "Applied" history
+  - [ ] Dashboard feed filter `isActive=true` excludes them
+  - [ ] Verify via MongoDB query: `db.jobs.countDocuments({ isActive: false })` > 0 after cleanup
+
+### 6-Hour Match Score Cycle
+
+- [ ] **P7.3.6: Score Refresh Executes Every 6 Hours**
+  - [ ] Check Render logs: `[Worker:Score]` appears every 6 hours
+  - [ ] Runs for 30-120 seconds (depends on job count and embedding API)
+  - [ ] Worker stats shows `score.lastRun` within last 7 hours
+  - [ ] Check `score.scored` > 0 (at least some jobs scored)
+
+- [ ] **P7.3.7: Score Distribution**
+  - [ ] After score refresh, check `/api/jobs/best-matches`
+  - [ ] Response includes top 8 jobs with matchScore 40-95
+  - [ ] Check MongoDB: jobs have variety of scores (not all same value)
+  - [ ] Resumes with more keywords → more jobs with high scores (40+ match)
+
+---
+
+## Data Quality & Integrity (P7.4)
+
+### Job Field Completeness
+
+- [ ] **P7.4.1: Required Fields**
+  - [ ] Every job has: id, title, company, location, description, applyUrl, source
+  - [ ] Every job has lifecycle fields: externalId, postedDate, isActive, missedFetchCycles
+  - [ ] Every job has scoring field: matchScore (0-100), matchExplanation
+  - [ ] Spot-check 10 random jobs in MongoDB — all fields present
+
+- [ ] **P7.4.2: Skill Extraction**
+  - [ ] Jobs include `skills` array derived from description
+  - [ ] Example: "React" job has "JavaScript", "React", "Frontend" in skills
+  - [ ] Skill extraction works across all 3 sources
+  - [ ] Verify via MongoDB: `jobs.skills.length > 0` for active jobs
+
+- [ ] **P7.4.3: Apply URL Validity**
+  - [ ] Click "Apply" on 5 random jobs
+  - [ ] Each opens to legitimate external application page (Adzuna, company site, etc.)
+  - [ ] No redirect loops or 404s
+  - [ ] URLs persist correctly after job is inactive
+
+### Resume-Based Matching
+
+- [ ] **P7.4.4: Match Score Correlation with Resume**
+  - [ ] Upload resume: "5 years React, Node.js, AWS"
+  - [ ] Check best-matches: React/Node jobs rank 70–95
+  - [ ] Python/Scala jobs rank 20–40
+  - [ ] Update resume: add "Python 3 years, Django"
+  - [ ] Re-run score worker (or wait 6 hours)
+  - [ ] Python/Django jobs now rank 60–80
+  - [ ] Scores reflect resume content
+
+- [ ] **P7.4.5: Match Explanation Quality**
+  - [ ] Read 3 match explanations from best-matches
+  - [ ] Each explanation: min 2 sentences, mentions specific skills
+  - [ ] Example: "You match 78% of required skills. You have 5 years React experience. Gap: AWS (not mentioned in resume)."
+  - [ ] Grammar and tone professional (no obvious mistakes)
+
+---
+
+## Monitoring & Observability (P7.5)
+
+### Admin Stats Endpoint
+
+- [ ] **P7.5.1: Worker Stats Accuracy**
+  - [ ] Call `/api/admin/workers/stats` multiple times
+  - [ ] Check `timestamp` updates on each call
+  - [ ] `workers.fetch.runsTotal` increases every 15 minutes
+  - [ ] `workers.cleanup.runsTotal` increases every 6 hours
+  - [ ] Job counts match MongoDB sum of isActive=true + isActive=false
+
+- [ ] **P7.5.2: Error Tracking**
+  - [ ] Simulate worker failure (e.g., mock API returns 500)
+  - [ ] Check worker stats: `lastError` field updated with error message
+  - [ ] Other workers still run (error isolation verified)
+  - [ ] After fix, error cleared on next run
+
+### Render Logs & Monitoring
+
+- [ ] **P7.5.3: Structured Logging**
+  - [ ] Open Render logs (Render Dashboard → Service → Logs)
+  - [ ] Verify timestamps for each worker run visible
+  - [ ] Log lines include: `[Worker:Fetch]`, `[Worker:Cleanup]`, `[Worker:Score]` with metrics
+  - [ ] Error logs clearly identified with `[ERROR]` prefix
+  - [ ] Search logs: can find specific job counts or error messages
+
+---
+
+## Acceptance Sign-Off (P7 Complete)
+
+All Phase 7 acceptance criteria verified and passed:
+
+| Criterion | Status | Verified By | Date |
+|-----------|--------|-------------|------|
+| Database-first (no live APIs) | ☐ | ________________ | ____ |
+| <2s feed load, <1s filters | ☐ | ________________ | ____ |
+| 500–1000+ jobs stored | ☐ | ________________ | ____ |
+| 15-min fetch cycle working | ☐ | ________________ | ____ |
+| 6-hour cleanup/score cycles | ☐ | ________________ | ____ |
+| Duplicate suppression working | ☐ | ________________ | ____ |
+| Worker stats endpoint functional | ☐ | ________________ | ____ |
+| CORS/OAuth production hardened | ☐ | ________________ | ____ |
+
+**Phase 7 Approved for Production:** ☐ YES    ☐ NO
+
+**Sign-Off:** 
+- QA Lead: _________________________ Date: _______
+- Tech Lead: _______________________ Date: _______
+- DevOps: __________________________ Date: _______

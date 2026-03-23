@@ -1,5 +1,6 @@
 .job-feed-page {
   animation: fadeIn 0.5s ease;
+  min-width: 0;
 }
 
 .feed-header {
@@ -59,6 +60,10 @@
   grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1fr 1fr;
   gap: 12px;
   grid-column: 1 / -1;
+}
+
+.feed-filters>* {
+  min-width: 0;
 }
 
 .active-filters-row {
@@ -275,6 +280,33 @@
   flex-wrap: wrap;
 }
 
+@media (min-width: 1440px) {
+  .feed-filters {
+    grid-template-columns: 2.4fr 1.3fr 1.3fr 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 1280px) {
+  .feed-filters {
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .feed-header__actions {
+    margin-left: 0;
+    align-items: flex-start;
+  }
+
+  .feed-sync-meta {
+    align-items: flex-start;
+  }
+
+  .best-matches-strip__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -295,7 +327,7 @@
   }
 
   .feed-filters {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .feed-filters input,
@@ -303,8 +335,85 @@
     width: 100%;
   }
 
+  .feed-header__actions {
+    width: 100%;
+  }
+
+  .live-refresh-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .best-matches-strip {
+    padding: 14px;
+  }
+
+  .best-matches-strip__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .best-matches-strip__grid {
+    grid-template-columns: 1fr;
+  }
+
   .job-grid {
     grid-template-columns: 1fr;
+  }
+
+  .job-grid-virtual {
+    max-height: 65vh;
+  }
+
+  .load-more-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 425px) {
+  .feed-header__title h2 {
+    font-size: 1.45rem;
+  }
+
+  .feed-filters {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .active-filter-chip {
+    width: 100%;
+    text-align: center;
+  }
+
+  .no-jobs,
+  .best-matches-strip {
+    border-radius: 10px;
+  }
+}
+
+@media (max-width: 375px) {
+  .feed-header__title h2 {
+    font-size: 1.34rem;
+  }
+
+  .feed-filters select,
+  .feed-filters input {
+    font-size: 0.86rem;
+    padding: 9px 12px;
+  }
+}
+
+@media (max-width: 320px) {
+  .feed-header__title h2 {
+    font-size: 1.22rem;
+  }
+
+  .live-refresh-btn,
+  .load-more-btn {
+    font-size: 0.8rem;
+    padding: 9px 10px;
   }
 }
 

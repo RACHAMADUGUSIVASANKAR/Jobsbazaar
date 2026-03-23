@@ -1,8 +1,10 @@
 import jobController from '../controllers/jobController.js';
+import { getWorkerStats_endpoint, getDeploymentStatus_endpoint } from '../controllers/adminController.js';
 import { verifyToken, checkResume } from '../middleware/authMiddleware.js';
 
 const jobRoutes = async (fastify, options) => {
   // Dashboard job surfaces are resume-gated to prevent bypassing mandatory upload.
+  fastify.get('/', { preHandler: [verifyToken, checkResume] }, jobController.getJobFeed);
   fastify.get('/feed', { preHandler: [verifyToken, checkResume] }, jobController.getJobFeed);
   fastify.get('/best-matches', { preHandler: [verifyToken, checkResume] }, jobController.getBestMatches);
   fastify.post('/refresh-live', { preHandler: [verifyToken, checkResume] }, jobController.refreshLiveJobs);
@@ -22,4 +24,10 @@ const appRoutes = async (fastify, options) => {
   fastify.get('/', { preHandler: [verifyToken, checkResume] }, jobController.getApplications);
 };
 
-export { jobRoutes as default, appRoutes };
+// Phase 6: Admin observability routes (for deployment monitoring)
+const adminRoutes = async (fastify, options) => {
+  fastify.get('/workers/stats', { preHandler: [verifyToken] }, getWorkerStats_endpoint);
+  fastify.get('/deployment-status', { preHandler: [verifyToken] }, getDeploymentStatus_endpoint);
+};
+
+export { jobRoutes as default, appRoutes, adminRoutes };

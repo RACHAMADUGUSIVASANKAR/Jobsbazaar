@@ -2,87 +2,8 @@
 /* This file contains tablet/mobile breakpoints for all dashboard components */
 
 /* ========== DASHBOARD LAYOUT RESPONSIVE ========== */
-@media (max-width: 1024px) {
-    .dashboard-sidebar {
-        width: 260px;
-    }
-
-    .dashboard-header {
-        padding: 0 20px;
-        height: 70px;
-    }
-
-    .header__search {
-        max-width: 300px;
-    }
-}
-
 @media (max-width: 768px) {
-    .dashboard-layout {
-        flex-direction: column;
-    }
-
-    .dashboard-sidebar {
-        position: fixed;
-        top: 0;
-        left: -260px;
-        width: 260px;
-        height: 100vh;
-        transition: left 0.3s ease;
-        z-index: 1000;
-    }
-
-    .dashboard-sidebar.open {
-        left: 0;
-    }
-
-    .sidebar-toggle {
-        display: flex !important;
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 999;
-        background: #222831;
-        border: none;
-        color: white;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        cursor: pointer;
-    }
-
-    .sidebar-backdrop {
-        display: block !important;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 100;
-    }
-
-    .dashboard-header {
-        padding: 0 15px;
-        height: 60px;
-    }
-
     .header__search {
-        display: none;
-    }
-}
-
-@media (max-width: 480px) {
-    .dashboard-header {
-        padding: 0 12px;
-        height: 56px;
-    }
-
-    .header__user {
-        gap: 10px;
-    }
-
-    .header__user-info {
         display: none;
     }
 }

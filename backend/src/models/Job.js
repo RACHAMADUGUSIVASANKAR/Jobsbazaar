@@ -3,14 +3,19 @@ import mongoose from 'mongoose';
 const JobSchema = new mongoose.Schema(
     {
         id: { type: String, required: true, unique: true, index: true },
+        externalId: { type: String, default: '', index: true },
         externalJobId: { type: String, default: '', index: true },
         title: { type: String, required: true, index: true },
         company: { type: String, default: 'Unknown Company', index: true },
         location: { type: String, default: 'Remote', index: true },
         category: { type: String, default: 'Engineering' },
+        domainCategory: { type: String, default: 'backend', index: true, enum: ['frontend', 'backend', 'aiml', 'cloud', 'data', 'cybersecurity', 'mobile', 'devops', 'testing', 'internship'] },
         description: { type: String, default: '' },
+        applyUrl: { type: String, default: '' },
         redirect_url: { type: String, default: '' },
+        postedDate: { type: Date, default: null },
         created: { type: String, default: '' },
+        skills: { type: [String], default: [] },
         salary_min: { type: Number, default: null },
         salary_max: { type: Number, default: null },
         contract_time: { type: String, default: 'full_time' },
@@ -18,10 +23,12 @@ const JobSchema = new mongoose.Schema(
 
         dedupeCompositeSignature: { type: String, default: '' },
         dedupeSemanticSignature: { type: String, default: '' },
+        dedupeHash: { type: String, default: '', index: true },
 
         isActive: { type: Boolean, default: true, index: true },
         status: { type: String, default: 'Active', index: true },
         syncMissedCount: { type: Number, default: 0 },
+        missedFetchCycles: { type: Number, default: 0, index: true },
 
         sourceFetchedAt: { type: Date, default: null },
         lastSeenAt: { type: Date, default: null, index: true },
@@ -40,6 +47,11 @@ const JobSchema = new mongoose.Schema(
 JobSchema.index({ title: 1, company: 1, location: 1 });
 JobSchema.index({ createdAt: -1 });
 JobSchema.index({ lastSeenAt: -1, isActive: 1 });
+JobSchema.index({ matchScore: -1, isActive: 1 });
+JobSchema.index({ domainCategory: 1, isActive: 1 });
+JobSchema.index({ skills: 1, isActive: 1 });
+JobSchema.index({ jobType: 1, workMode: 1, isActive: 1 });
+JobSchema.index({ postedDate: -1, isActive: 1 });
 
 const Job = mongoose.models.Job || mongoose.model('Job', JobSchema);
 

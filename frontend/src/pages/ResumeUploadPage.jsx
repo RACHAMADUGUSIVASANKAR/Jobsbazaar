@@ -43,7 +43,7 @@ const ResumeUploadPage = () => {
       if (response.ok) {
         setSuccess(true);
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate('/dashboard/profile');
         }, 2000);
       } else {
         const data = await response.json();
@@ -96,7 +96,7 @@ const ResumeUploadPage = () => {
 
         {success && (
           <div className="resume-upload__success">
-            <FiCheckCircle /> Resume uploaded successfully! Redirecting...
+            <FiCheckCircle /> Resume uploaded successfully! Redirecting to your profile...
           </div>
         )}
 

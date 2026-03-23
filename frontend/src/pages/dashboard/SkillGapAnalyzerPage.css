@@ -220,4 +220,88 @@
   .analysis-details {
     grid-template-columns: 1fr;
   }
+
+  .analyzer-card,
+  .market-trends,
+  .recommended-learning {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .trend-window-controls {
+    flex-wrap: wrap;
+  }
+
+  .resource-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .learn-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .trends-table,
+  .trends-table thead,
+  .trends-table tbody,
+  .trends-table th,
+  .trends-table td,
+  .trends-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .trends-table thead {
+    display: none;
+  }
+
+  .trends-table tr {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f8fbfc;
+  }
+
+  .trends-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 0.88rem;
+  }
+
+  .trends-table td:nth-child(1)::before {
+    content: 'Skill';
+    font-weight: 700;
+    color: #475569;
+  }
+
+  .trends-table td:nth-child(2)::before {
+    content: 'Demand';
+    font-weight: 700;
+    color: #475569;
+  }
+
+  .trends-table td:nth-child(3)::before {
+    content: 'Priority';
+    font-weight: 700;
+    color: #475569;
+  }
+}
+
+@media (max-width: 425px) {
+
+  .analyzer-card h3,
+  .market-trends h3,
+  .recommended-learning h3 {
+    font-size: 1rem;
+  }
+
+  .skill-tag {
+    font-size: 0.82rem;
+    padding: 6px 10px;
+  }
 }

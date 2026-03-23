@@ -30,67 +30,75 @@ const AuthenticatedRoute = ({ children }) => {
 
 const ResumeGuard = ({ mode, children }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [checking, setChecking] = useState(true);
   const [allowed, setAllowed] = useState(false);
 
-  useEffect(() => {
-    const checkResumeState = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
+  const checkResumeState = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setAllowed(false);
+      setChecking(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/users/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
         setAllowed(false);
         setChecking(false);
         return;
       }
 
-      try {
-        const response = await fetch('/api/users/profile', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (response.status === 401) {
-          localStorage.removeItem('token');
-          setAllowed(false);
-          setChecking(false);
-          return;
-        }
-
-        let hasResume = false;
-        if (response.ok) {
-          const data = await response.json();
-          hasResume = Boolean(data?.resumeText);
-        }
-
-        if (mode === 'require-resume') {
-          if (hasResume) {
-            setAllowed(true);
-          } else {
-            navigate('/upload-resume', { replace: true });
-            setAllowed(false);
-          }
-        }
-
-        if (mode === 'upload-only') {
-          if (hasResume) {
-            navigate('/dashboard/job-feed', { replace: true });
-            setAllowed(false);
-          } else {
-            setAllowed(true);
-          }
-        }
-      } catch (error) {
-        if (mode === 'require-resume') {
-          navigate('/upload-resume', { replace: true });
-          setAllowed(false);
-        } else {
-          setAllowed(true);
-        }
-      } finally {
-        setChecking(false);
+      let onboardingCompleted = false;
+      if (response.ok) {
+        const data = await response.json();
+        onboardingCompleted = Boolean(data?.onboardingCompleted || data?.onboardingComplete);
       }
+
+      if (mode === 'onboarding-lock') {
+        if (onboardingCompleted) {
+          setAllowed(true);
+        } else {
+          const isProfileRoute = location.pathname.startsWith('/dashboard/profile');
+          if (isProfileRoute) {
+            setAllowed(true);
+          } else {
+            navigate('/dashboard/profile', { replace: true });
+            setAllowed(false);
+          }
+        }
+      }
+    } catch (error) {
+      if (mode === 'onboarding-lock') {
+        navigate('/dashboard/profile', { replace: true });
+        setAllowed(false);
+      } else {
+        setAllowed(true);
+      }
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  useEffect(() => {
+    setChecking(true);
+    checkResumeState();
+  }, [mode, navigate, location.pathname]);
+
+  useEffect(() => {
+    const handleProfileUpdated = () => {
+      setChecking(true);
+      checkResumeState();
     };
 
-    checkResumeState();
-  }, [mode, navigate]);
+    window.addEventListener('profileUpdated', handleProfileUpdated);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdated);
+  }, [mode, navigate, location.pathname]);
 
   if (checking) {
     return <div className="app-route-loader">Checking profile setup...</div>;
@@ -140,7 +148,7 @@ function App() {
         path="/dashboard"
         element={
           <AuthenticatedRoute>
-            <ResumeGuard mode="require-resume">
+            <ResumeGuard mode="onboarding-lock">
               <DashboardLayout />
             </ResumeGuard>
           </AuthenticatedRoute>
@@ -161,7 +169,7 @@ function App() {
         path="/upload-resume"
         element={
           <AuthenticatedRoute>
-            <ResumeGuard mode="upload-only">
+            <ResumeGuard mode="onboarding-lock">
               <ResumeUploadPage />
             </ResumeGuard>
           </AuthenticatedRoute>

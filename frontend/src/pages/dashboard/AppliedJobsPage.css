@@ -115,3 +115,71 @@
 .view-details-btn:hover {
   color: #00ADB5;
 }
+
+.no-apps {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+  color: #475569;
+}
+
+@media (max-width: 1024px) {
+  .app-card {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .app-card__timeline {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: 20px;
+  }
+
+  .page-header h2 {
+    font-size: 1.45rem;
+  }
+
+  .app-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .app-card__status {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .view-details-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: space-between;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 10px;
+  }
+}
+
+@media (max-width: 425px) {
+  .app-card__info h3 {
+    font-size: 1rem;
+  }
+
+  .timeline-step {
+    font-size: 0.75rem;
+  }
+
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 4px 10px;
+  }
+}

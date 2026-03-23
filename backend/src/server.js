@@ -7,7 +7,7 @@ import multipart from '@fastify/multipart';
 import cronJobs from './utils/cronJobs.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import jobRoutes, { appRoutes } from './routes/jobRoutes.js';
+import jobRoutes, { appRoutes, adminRoutes } from './routes/jobRoutes.js';
 import assistantRoutes from './routes/assistantRoutes.js';
 
 const trimTrailingSlash = (value = '') => String(value || '').replace(/\/+$/, '');
@@ -37,6 +37,11 @@ if (isProd && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your-secre
   throw new Error('JWT_SECRET is required in production and must not use the default value.');
 }
 
+// Phase 6: Production hardening - ensure FRONTEND_URL configured in prod
+if (isProd && !process.env.FRONTEND_URL) {
+  console.warn('[WARNING] Production mode detected but FRONTEND_URL not set. OAuth/CORS may fail.');
+}
+
 const fastify = Fastify({ logger: true, trustProxy: true });
 
 // Plugins
@@ -58,7 +63,14 @@ await fastify.register(cors, {
       return;
     }
 
-    if (allowVercelPreview && isVercelOrigin(normalizedOrigin)) {
+    // Phase 6: In production, REJECT preview domains explicitly
+    if (isProd && isVercelOrigin(normalizedOrigin)) {
+      console.warn(`[CORS] Production request rejected from Vercel preview: ${normalizedOrigin}`);
+      cb(new Error(`Production CORS: Vercel preview domains not allowed. Use configured FRONTEND_URL.`), false);
+      return;
+    }
+
+    if (!isProd && allowVercelPreview && isVercelOrigin(normalizedOrigin)) {
       cb(null, true);
       return;
     }
@@ -88,6 +100,7 @@ fastify.register(userRoutes, { prefix: '/api/users' });
 fastify.register(jobRoutes, { prefix: '/api/jobs' });
 fastify.register(appRoutes, { prefix: '/api/applications' });
 fastify.register(assistantRoutes, { prefix: '/api/assistant' });
+fastify.register(adminRoutes, { prefix: '/api/admin' });
 
 // Health check
 fastify.get('/api/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));

@@ -56,12 +56,19 @@
   height: 26px;
 }
 
-.switch input { opacity: 0; width: 0; height: 0; }
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
 
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: #ccc;
   transition: .4s;
 }
@@ -77,17 +84,30 @@
   transition: .4s;
 }
 
-input:checked + .slider { background-color: #00ADB5; }
-input:checked + .slider:before { transform: translateX(24px); }
-.slider.round { border-radius: 34px; }
-.slider.round:before { border-radius: 50%; }
+input:checked+.slider {
+  background-color: #00ADB5;
+}
+
+input:checked+.slider:before {
+  transform: translateX(24px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
 
 /* Danger Zone */
 .danger-zone {
   border: 1px solid rgba(255, 77, 77, 0.2);
 }
 
-.danger-text { color: #ff4d4d !important; }
+.danger-text {
+  color: #ff4d4d !important;
+}
 
 .danger-box {
   background: #fff8f8;
@@ -95,8 +115,16 @@ input:checked + .slider:before { transform: translateX(24px); }
   border-radius: 12px;
 }
 
-.danger-box h4 { color: #ff4d4d; margin-bottom: 8px; }
-.danger-box p { font-size: 0.9rem; color: #393E46; margin-bottom: 20px; }
+.danger-box h4 {
+  color: #ff4d4d;
+  margin-bottom: 8px;
+}
+
+.danger-box p {
+  font-size: 0.9rem;
+  color: #393E46;
+  margin-bottom: 20px;
+}
 
 .delete-confirm input {
   width: 100%;
@@ -118,4 +146,34 @@ input:checked + .slider:before { transform: translateX(24px); }
   cursor: pointer;
 }
 
-.delete-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .settings-section {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .setting-control {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .switch {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 425px) {
+  .danger-box {
+    padding: 14px;
+  }
+
+  .delete-btn {
+    min-height: 44px;
+  }
+}

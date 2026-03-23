@@ -13,12 +13,238 @@
         "AWS"
       ],
       "experience": null,
-      "resumeUploadedAt": "2026-03-22T10:11:05.243Z",
+      "resumeUploadedAt": "2026-03-23T19:29:10.570Z",
       "resumeExtraction": {
-        "extractedAt": "2026-03-22T10:11:05.243Z",
-        "skillCount": 6,
+        "extractedAt": "2026-03-23T19:29:10.570Z",
+        "parserVersion": "strict-v3",
         "explicitYearsDetected": [],
-        "parserVersion": "strict-v2"
+        "sections": {
+          "skills": 7,
+          "projects": 1,
+          "certifications": 1,
+          "tools": 2,
+          "technologies": 5
+        }
+      },
+      "name": "siva",
+      "gender": "male",
+      "linkedin": "",
+      "github": "",
+      "phone": "",
+      "portfolio": "",
+      "resumeSkills": [
+        "JavaScript",
+        "React",
+        "Python",
+        "Machine Learning",
+        "SQL",
+        "AWS",
+        "Git"
+      ],
+      "resumeProjects": [
+        "SIVASANKAR RACHAMADUGU sivasankar99122@gmail.com | +91 9912276561 | Portfolio | linkedin.com/in/sivasankar-rachamadugu/ | github.com/RACHAMADUGUSIVASANKAR Projects Interactive Book-Style Portfolio - Deployment , Source code Dec 2025 – Jan 2026 • Engineered 15+ responsive web pages incorporating dynamic animations, reducing load time by 35%. • Achieved 98% cross-browser compatibility and increased visitor engagement by 60%. • Stack: HTML, CSS, JavaScript. Real-Time Facial Expression Recognition System - Source Code Sep 2025 – Oct 2025 • Implemented computer vision pipeline processing 500+ images with 87% classification accuracy at 30 FPS. • Optimized preprocessing parameters lowering false detections by 42%. • Stack: Python, OpenCV. Text Emotion Classification Model – Source code Oct 2025 • Trained NLP model categorizing 6 emotional states using 10,000+ text samples with TF-IDF vectorization. • Enhanced prediction performance by 23% through SVM and Random Forest algorithms. • Deployed Flask-based web interface delivering responses under 2 seconds. • Stack: Python, HTML, CSS, Kaggle. Skills Languages: HTML, CSS, Java, C, Python Frameworks: React.js, Bootstrap Database: SQL Tools: Git, GitHub, VS Code, Google C olab, N8N, Replit Course Work: React.js, AWS Cloud, Google Cloud, Java Full Stack Developer, Full Stack Development (MERN), Python Full Stack Developer, Palo Alto Cybersecurity Professional Experience Freelance VideoEditor & Graphic Designer 2023 – Present • Produced 50+ multimedia projects achieving 95% client satisfaction rate. • Increased digital engagement by 40% via targeted visual optimization strategies. • Coordinated project timelines ensuring 90% on-time delivery. Education Srinivasa Ramanujan Institute of Technology, Anantapur B.Tech in Computer Science (AI & ML) CGPA: 8.1 2023 – Present Narayana Jr College, Anantapur Intermediate (MPC) 92.9% 2021 – 2023 Raman EM High School, Anantapur SCC 78% 2020 – 2021 Achievements • Pratibha Award – Securing 1st position among Arya Vysya students in Anantapur town for Outstanding Performance in B.Tech First Year (2023–24). Certifications • NPTEL Elite Certification – Introduction to Internet of Things. • Youth Leadership and Civic Engagement – Government of India. LANGUAGES • English (Professional), Telugu (Native), Kannada (Conversational)"
+      ],
+      "education": "B.Tech",
+      "resumeEducation": "B.Tech",
+      "resumeCertifications": [
+        "Certifications • NPTEL Elite Certification – Introduction to Internet of Things"
+      ],
+      "resumeTools": [
+        "AWS",
+        "Git"
+      ],
+      "resumeTechnologies": [
+        "JavaScript",
+        "React",
+        "Python",
+        "Machine Learning",
+        "SQL"
+      ],
+      "resumeKeywords": [
+        "stack",
+        "code",
+        "2025",
+        "python",
+        "2023",
+        "anantapur",
+        "source",
+        "time",
+        "engagement",
+        "html",
+        "full",
+        "sivasankar",
+        "rachamadugu",
+        "portfolio",
+        "github",
+        "projects",
+        "increased",
+        "computer",
+        "classification",
+        "text",
+        "model",
+        "performance",
+        "languages",
+        "java",
+        "react"
+      ]
+    },
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "email": "onboard@test.dev",
+      "name": "onboard",
+      "gender": "",
+      "skills": [],
+      "linkedin": "",
+      "github": "",
+      "phone": "",
+      "portfolio": "",
+      "onboardingCompleted": false,
+      "resumeText": "",
+      "resumeSkills": [],
+      "experience": null,
+      "education": null,
+      "resumeKeywords": [],
+      "resumeUploadedAt": null,
+      "updatedAt": "2026-03-22T19:45:02.611Z"
+    },
+    {
+      "id": "onboard-test",
+      "email": "onboard@test.dev",
+      "name": "onboard",
+      "gender": "",
+      "skills": [],
+      "linkedin": "",
+      "github": "",
+      "phone": "",
+      "portfolio": "",
+      "onboardingCompleted": false,
+      "resumeText": "",
+      "resumeSkills": [],
+      "experience": null,
+      "education": null,
+      "resumeKeywords": [],
+      "resumeUploadedAt": null,
+      "updatedAt": "2026-03-22T19:47:02.246Z"
+    },
+    {
+      "id": "69c197b747aa1c02ce28b5df",
+      "email": "santhosh1168513@gmail.com",
+      "name": "sivasankar rachamadugu",
+      "gender": "Male",
+      "skills": [
+        "Python",
+        "HTML",
+        "CSS",
+        "Git",
+        "VS Code",
+        "Google Coloab",
+        "N8N",
+        "Replit",
+        "java",
+        "c language"
+      ],
+      "primarySkills": [
+        "Python",
+        "HTML",
+        "CSS",
+        "Git",
+        "VS Code",
+        "Google Coloab",
+        "N8N",
+        "Replit",
+        "java",
+        "c language"
+      ],
+      "secondarySkills": [],
+      "preferredRole": "",
+      "experienceLevel": "",
+      "preferredJobType": "Full-time",
+      "preferredWorkMode": "Remote",
+      "preferredLocation": "",
+      "expectedSalaryMin": null,
+      "expectedSalaryMax": null,
+      "expectedSalaryCurrency": "INR",
+      "linkedin": "",
+      "github": "",
+      "portfolio": "",
+      "phone": "",
+      "educationLevel": "",
+      "degree": "",
+      "university": "",
+      "graduationYear": "",
+      "certifications": [],
+      "languagesKnown": [],
+      "onboardingCompleted": true,
+      "resumeText": "SIVASANKAR RACHAMADUGU sivasankar99122@gmail.com | +91 9912276561 | Portfolio | linkedin.com/in/sivasankar-rachamadugu/ | github.com/RACHAMADUGUSIVASANKAR Projects Interactive Book-Style Portfolio - Deployment , Source code Dec 2025 – Jan 2026 • Engineered 15+ responsive web pages incorporating dynamic animations, reducing load time by 35%. • Achieved 98% cross-browser compatibility and increased visitor engagement by 60%. • Stack: HTML, CSS, JavaScript. Real-Time Facial Expression Recognition System - Source Code Sep 2025 – Oct 2025 • Implemented computer vision pipeline processing 500+ images with 87% classification accuracy at 30 FPS. • Optimized preprocessing parameters lowering false detections by 42%. • Stack: Python, OpenCV. Text Emotion Classification Model – Source code Oct 2025 • Trained NLP model categorizing 6 emotional states using 10,000+ text samples with TF-IDF vectorization. • Enhanced prediction performance by 23% through SVM and Random Forest algorithms. • Deployed Flask-based web interface delivering responses under 2 seconds. • Stack: Python, HTML, CSS, Kaggle. Skills Languages: HTML, CSS, Java, C, Python Frameworks: React.js, Bootstrap Database: SQL Tools: Git, GitHub, VS Code, Google C olab, N8N, Replit Course Work: React.js, AWS Cloud, Google Cloud, Java Full Stack Developer, Full Stack Development (MERN), Python Full Stack Developer, Palo Alto Cybersecurity Professional Experience Freelance VideoEditor & Graphic Designer 2023 – Present • Produced 50+ multimedia projects achieving 95% client satisfaction rate. • Increased digital engagement by 40% via targeted visual optimization strategies. • Coordinated project timelines ensuring 90% on-time delivery. Education Srinivasa Ramanujan Institute of Technology, Anantapur B.Tech in Computer Science (AI & ML) CGPA: 8.1 2023 – Present Narayana Jr College, Anantapur Intermediate (MPC) 92.9% 2021 – 2023 Raman EM High School, Anantapur SCC 78% 2020 – 2021 Achievements • Pratibha Award – Securing 1st position among Arya Vysya students in Anantapur town for Outstanding Performance in B.Tech First Year (2023–24). Certifications • NPTEL Elite Certification – Introduction to Internet of Things. • Youth Leadership and Civic Engagement – Government of India. LANGUAGES • English (Professional), Telugu (Native), Kannada (Conversational)",
+      "resumeSkills": [
+        "JavaScript",
+        "React",
+        "Python",
+        "Machine Learning",
+        "SQL",
+        "AWS",
+        "Git"
+      ],
+      "resumeProjects": [
+        "SIVASANKAR RACHAMADUGU sivasankar99122@gmail.com | +91 9912276561 | Portfolio | linkedin.com/in/sivasankar-rachamadugu/ | github.com/RACHAMADUGUSIVASANKAR Projects Interactive Book-Style Portfolio - Deployment , Source code Dec 2025 – Jan 2026 • Engineered 15+ responsive web pages incorporating dynamic animations, reducing load time by 35%. • Achieved 98% cross-browser compatibility and increased visitor engagement by 60%. • Stack: HTML, CSS, JavaScript. Real-Time Facial Expression Recognition System - Source Code Sep 2025 – Oct 2025 • Implemented computer vision pipeline processing 500+ images with 87% classification accuracy at 30 FPS. • Optimized preprocessing parameters lowering false detections by 42%. • Stack: Python, OpenCV. Text Emotion Classification Model – Source code Oct 2025 • Trained NLP model categorizing 6 emotional states using 10,000+ text samples with TF-IDF vectorization. • Enhanced prediction performance by 23% through SVM and Random Forest algorithms. • Deployed Flask-based web interface delivering responses under 2 seconds. • Stack: Python, HTML, CSS, Kaggle. Skills Languages: HTML, CSS, Java, C, Python Frameworks: React.js, Bootstrap Database: SQL Tools: Git, GitHub, VS Code, Google C olab, N8N, Replit Course Work: React.js, AWS Cloud, Google Cloud, Java Full Stack Developer, Full Stack Development (MERN), Python Full Stack Developer, Palo Alto Cybersecurity Professional Experience Freelance VideoEditor & Graphic Designer 2023 – Present • Produced 50+ multimedia projects achieving 95% client satisfaction rate. • Increased digital engagement by 40% via targeted visual optimization strategies. • Coordinated project timelines ensuring 90% on-time delivery. Education Srinivasa Ramanujan Institute of Technology, Anantapur B.Tech in Computer Science (AI & ML) CGPA: 8.1 2023 – Present Narayana Jr College, Anantapur Intermediate (MPC) 92.9% 2021 – 2023 Raman EM High School, Anantapur SCC 78% 2020 – 2021 Achievements • Pratibha Award – Securing 1st position among Arya Vysya students in Anantapur town for Outstanding Performance in B.Tech First Year (2023–24). Certifications • NPTEL Elite Certification – Introduction to Internet of Things. • Youth Leadership and Civic Engagement – Government of India. LANGUAGES • English (Professional), Telugu (Native), Kannada (Conversational)"
+      ],
+      "resumeEducation": "B.Tech",
+      "experience": null,
+      "resumeCertifications": [
+        "Certifications • NPTEL Elite Certification – Introduction to Internet of Things"
+      ],
+      "resumeTools": [
+        "AWS",
+        "Git"
+      ],
+      "resumeTechnologies": [
+        "JavaScript",
+        "React",
+        "Python",
+        "Machine Learning",
+        "SQL"
+      ],
+      "education": "B.Tech",
+      "resumeKeywords": [
+        "stack",
+        "code",
+        "2025",
+        "python",
+        "2023",
+        "anantapur",
+        "source",
+        "time",
+        "engagement",
+        "html",
+        "full",
+        "sivasankar",
+        "rachamadugu",
+        "portfolio",
+        "github",
+        "projects",
+        "increased",
+        "computer",
+        "classification",
+        "text",
+        "model",
+        "performance",
+        "languages",
+        "java",
+        "react"
+      ],
+      "resumeUploadedAt": "2026-03-23T19:44:42.231Z",
+      "updatedAt": "2026-03-23T19:46:22.177Z",
+      "resumeExtraction": {
+        "extractedAt": "2026-03-23T19:44:42.231Z",
+        "parserVersion": "strict-v3",
+        "explicitYearsDetected": [],
+        "sections": {
+          "skills": 7,
+          "projects": 1,
+          "certifications": 1,
+          "tools": 2,
+          "technologies": 5
+        }
       }
     }
   ],
@@ -1019,6 +1245,15 @@
       "source": "application-popup",
       "note": "",
       "timestamp": "2026-03-22T11:10:03.014Z"
+    },
+    {
+      "id": "1774291902479",
+      "userId": "69bed88fac474578eef427d1",
+      "jobId": "arbeitnow-founders-associate-ai-process-optimisation-intern-fulltime-berlin-236176",
+      "type": "Skipped",
+      "source": "application-popup",
+      "note": "",
+      "timestamp": "2026-03-23T18:51:42.479Z"
     }
   ]
 }

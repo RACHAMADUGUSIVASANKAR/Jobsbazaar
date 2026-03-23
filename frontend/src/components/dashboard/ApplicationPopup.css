@@ -96,3 +96,37 @@
   cursor: pointer;
   padding: 8px;
 }
+
+@media (max-width: 768px) {
+  .popup-overlay {
+    padding: 20px;
+  }
+
+  .app-popup {
+    max-width: min(460px, 100%);
+    padding: 28px 20px;
+    border-radius: 16px;
+  }
+
+  .popup-actions button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 425px) {
+  .popup-overlay {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .app-popup {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 14px 14px 10px 10px;
+    padding: 22px 14px;
+  }
+
+  .popup-header h2 {
+    font-size: 1.2rem;
+  }
+}

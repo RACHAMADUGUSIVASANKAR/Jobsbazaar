@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { google } from 'googleapis';
 import User from '../models/User.js';
 import { sendWelcomeEmail, sendResetPasswordEmail } from '../utils/emailService.js';
+import dbService from '../utils/dbService.js';
+import { computeOnboardingState } from '../utils/onboarding.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -43,6 +45,19 @@ const findOrCreateGoogleUser = async ({ googleId, email, name, profilePicture })
   }
 
   return user;
+};
+
+const buildUserPayload = async (user) => {
+  const profile = await dbService.find('users', (entry) => entry.id === String(user._id));
+  const onboarding = computeOnboardingState(profile);
+
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    profilePicture: user.profilePicture,
+    ...onboarding
+  };
 };
 
 // Password validation
@@ -140,12 +155,7 @@ export const login = async (request, reply) => {
     return reply.send({
       message: 'Login successful',
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        profilePicture: user.profilePicture
-      }
+      user: await buildUserPayload(user)
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -338,12 +348,7 @@ export const googleLogin = async (request, reply) => {
     return reply.send({
       message: 'Login successful',
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        profilePicture: user.profilePicture
-      }
+      user: await buildUserPayload(user)
     });
   } catch (error) {
     console.error('Google login error:', error);

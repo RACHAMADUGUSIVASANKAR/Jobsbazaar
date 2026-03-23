@@ -28,7 +28,7 @@ const SkillGapAnalyzerPage = () => {
         const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
         const [profileRes, feedRes] = await Promise.all([
           fetch('/api/users/profile', { headers }),
-          fetch('/api/jobs/feed?page=1&pageSize=50', { headers })
+          fetch('/api/jobs?page=1&pageSize=50', { headers })
         ]);
 
         const [profileData, feedPayload] = await Promise.all([

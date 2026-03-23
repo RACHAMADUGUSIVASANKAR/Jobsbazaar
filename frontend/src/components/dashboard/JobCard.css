@@ -90,7 +90,7 @@
 
 .source-badge {
   display: inline-block;
-  padding: 3px 8px;
+  padding: 3px 10px;
   border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 700;
@@ -98,6 +98,16 @@
   letter-spacing: 0.5px;
   background: rgba(0, 173, 181, 0.1);
   color: #0d9488;
+  white-space: nowrap;
+}
+
+.source-badge:first-child {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .job-card__status-row {

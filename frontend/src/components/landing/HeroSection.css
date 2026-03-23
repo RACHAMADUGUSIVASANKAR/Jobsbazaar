@@ -1,11 +1,11 @@
 .hero {
-  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
-  padding-top: 80px;
+  padding: 72px 0 40px;
   background: #EEEEEE;
   position: relative;
-  overflow: hidden;
+  overflow-x: clip;
 }
 
 .hero::before {
@@ -25,7 +25,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
+  gap: 24px;
+  width: 100%;
   position: relative;
   z-index: 1;
 }
@@ -33,10 +34,18 @@
 .hero__logo-loop {
   width: 100%;
   max-width: 1120px;
-  height: 86px;
+  height: 62px;
   position: relative;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
+}
+
+.hero__content {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: 900px;
+  justify-items: center;
 }
 
 .hero__company-badge {
@@ -62,31 +71,36 @@
 }
 
 .hero__title {
-  font-size: 3.5rem;
+  font-size: clamp(1.75rem, 7vw, 3rem);
   font-weight: 800;
   color: #222831;
-  line-height: 1.15;
-  max-width: 900px;
+  line-height: 1.2;
+  max-width: 100%;
+  margin: 0;
+  text-wrap: balance;
 }
 
 .hero__title-static {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .hero__title-rotating {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
 }
 
 .hero__rotating-main {
   background: #00ADB5;
   color: #fff;
-  padding: 4px 16px;
+  padding: 3px 10px;
   border-radius: 10px;
   display: inline-flex;
   overflow: hidden;
+  max-width: 100%;
+  white-space: normal;
 }
 
 .hero__rotating-split {
@@ -95,35 +109,41 @@
 }
 
 .hero__subtitle {
-  font-size: 1.2rem;
+  font-size: 0.98rem;
   color: #393E46;
-  max-width: 640px;
-  line-height: 1.7;
+  max-width: 44ch;
+  line-height: 1.55;
+  margin: 0;
+  text-wrap: pretty;
 }
 
 .hero__buttons {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: min(100%, 420px);
+  margin-top: 4px;
+  margin-inline: auto;
 }
 
 .hero__btn-glare {
-  width: auto !important;
+  width: 100% !important;
   height: auto !important;
 }
 
 .hero__btn {
-  display: inline-block;
-  padding: 16px 36px;
-  font-size: 1.05rem;
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 13px 16px;
+  font-size: 0.95rem;
   font-weight: 600;
   border-radius: 12px;
   text-decoration: none;
-  white-space: nowrap;
+  white-space: normal;
   transition: transform 0.2s ease;
+  overflow-wrap: anywhere;
 }
 
 .hero__btn:hover {
@@ -139,41 +159,113 @@
   border: 2px solid #393E46;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 375px) {
+  .hero {
+    padding-top: 76px;
+  }
+
+  .hero__title {
+    font-size: 1.9rem;
+  }
+}
+
+@media (min-width: 425px) {
+  .hero__title {
+    font-size: 2.05rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding: 92px 0 48px;
+  }
+
+  .hero__container {
+    gap: 28px;
+  }
+
   .hero__title {
     font-size: 2.25rem;
   }
 
   .hero__subtitle {
-    font-size: 1rem;
+    font-size: 1.05rem;
+    line-height: 1.65;
+  }
+
+  .hero__buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+  }
+
+  .hero__btn-glare {
+    width: auto !important;
   }
 
   .hero__btn {
+    width: auto;
     padding: 14px 28px;
     font-size: 0.95rem;
   }
 
   .hero__logo-loop {
-    height: 60px;
+    height: 74px;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 374px) {
+  .hero {
+    padding-top: 68px;
+  }
+
+  .hero__container {
+    gap: 18px;
+  }
+
+  .hero__logo-loop {
+    height: 56px;
+  }
+
   .hero__title {
-    font-size: 1.75rem;
+    font-size: 1.62rem;
   }
 
-  .hero__buttons {
-    flex-direction: column;
-    width: 100%;
+  .hero__subtitle {
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero__title {
+    font-size: 3rem;
+    line-height: 1.16;
   }
 
-  .hero__btn-glare {
-    width: 100% !important;
+  .hero__subtitle {
+    font-size: 1.12rem;
   }
 
-  .hero__btn {
-    width: 100%;
-    text-align: center;
+  .hero__logo-loop {
+    height: 82px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hero {
+    padding-top: 104px;
+  }
+
+  .hero__title {
+    font-size: 3.5rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .hero__title {
+    font-size: 3.8rem;
   }
 }

@@ -1,5 +1,6 @@
 import dbService from '../utils/dbService.js';
 import jwt from 'jsonwebtoken';
+import { computeOnboardingState } from '../utils/onboarding.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
 
@@ -25,10 +26,12 @@ export const verifyToken = async (request, reply) => {
 
 export const checkResume = async (request, reply) => {
   const user = await dbService.find('users', u => u.id === request.user.id);
-  if (!user || !user.resumeText) {
+  const onboarding = computeOnboardingState(user);
+
+  if (!onboarding.onboardingCompleted) {
     return reply.status(403).send({
-      code: 'RESUME_MISSING',
-      message: 'Resume upload is mandatory to access the dashboard.'
+      code: 'ONBOARDING_REQUIRED',
+      message: 'Complete profile details (name, gender, and skills) to unlock dashboard features.'
     });
   }
 };
