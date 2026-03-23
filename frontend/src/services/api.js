@@ -49,7 +49,8 @@ export const api = {
   },
 
   googleLogin: () => {
-    window.location.href = `${API_BASE}/google-login`;
+    const frontendOrigin = encodeURIComponent(window.location.origin);
+    window.location.href = `${API_BASE}/google-login?frontend=${frontendOrigin}`;
   }
 };
 

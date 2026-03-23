@@ -101,8 +101,8 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    // Google OAuth will be handled by backend
-    window.location.href = toApiUrl('/api/auth/google-login');
+    const frontendOrigin = encodeURIComponent(window.location.origin);
+    window.location.href = toApiUrl(`/api/auth/google-login?frontend=${frontendOrigin}`);
   };
 
   return (

@@ -15,6 +15,55 @@ const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 
 const normalizeFrontendUrl = () => FRONTEND_URL.replace(/\/+$/, '');
 
+const trimTrailingSlash = (value = '') => String(value || '').replace(/\/+$/, '');
+
+const getSafeFrontendUrl = (rawValue = '') => {
+  const value = trimTrailingSlash(rawValue);
+  if (!value) return null;
+
+  try {
+    const parsed = new URL(value);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return null;
+    }
+    return trimTrailingSlash(parsed.origin);
+  } catch {
+    return null;
+  }
+};
+
+const encodeOAuthState = (payload) => {
+  try {
+    return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  } catch {
+    return '';
+  }
+};
+
+const decodeOAuthState = (state) => {
+  if (!state) return {};
+
+  try {
+    const json = Buffer.from(String(state), 'base64url').toString('utf8');
+    return JSON.parse(json);
+  } catch {
+    return {};
+  }
+};
+
+const resolveFrontendRedirectBase = (request, stateFrontend) => {
+  const fromState = getSafeFrontendUrl(stateFrontend);
+  if (fromState) return fromState;
+
+  const fromRequestOrigin = getSafeFrontendUrl(request.headers.origin);
+  if (fromRequestOrigin) return fromRequestOrigin;
+
+  const fromEnv = getSafeFrontendUrl(FRONTEND_URL);
+  if (fromEnv) return fromEnv;
+
+  return 'http://localhost:5188';
+};
+
 const buildGoogleCallbackUrl = (request) => {
   if (GOOGLE_REDIRECT_URI) {
     return GOOGLE_REDIRECT_URI;
@@ -272,10 +321,14 @@ export const googleLoginRedirect = async (request, reply) => {
       buildGoogleCallbackUrl(request)
     );
 
+    const requestedFrontend = getSafeFrontendUrl(request.query?.frontend || request.headers.origin);
+    const oauthState = encodeOAuthState({ frontend: requestedFrontend || undefined });
+
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: ['openid', 'email', 'profile'],
-      prompt: 'consent'
+      prompt: 'consent',
+      state: oauthState || undefined
     });
 
     return reply.redirect(authUrl);
@@ -287,9 +340,12 @@ export const googleLoginRedirect = async (request, reply) => {
 
 export const googleCallback = async (request, reply) => {
   try {
-    const { code } = request.query;
+    const { code, state } = request.query;
+    const parsedState = decodeOAuthState(state);
+    const frontendRedirectBase = resolveFrontendRedirectBase(request, parsedState.frontend);
+
     if (!code) {
-      return reply.redirect(`${normalizeFrontendUrl()}/?oauthError=missing_code`);
+      return reply.redirect(`${frontendRedirectBase}/?oauthError=missing_code`);
     }
 
     const oauth2Client = new google.auth.OAuth2(
@@ -305,7 +361,7 @@ export const googleCallback = async (request, reply) => {
     const { data } = await oauth2.userinfo.get();
 
     if (!data?.id || !data?.email) {
-      return reply.redirect(`${normalizeFrontendUrl()}/?oauthError=profile_missing`);
+      return reply.redirect(`${frontendRedirectBase}/?oauthError=profile_missing`);
     }
 
     const user = await findOrCreateGoogleUser({
@@ -321,7 +377,7 @@ export const googleCallback = async (request, reply) => {
       { expiresIn: '7d' }
     );
 
-    return reply.redirect(`${normalizeFrontendUrl()}/?token=${encodeURIComponent(token)}&oauth=success`);
+    return reply.redirect(`${frontendRedirectBase}/?token=${encodeURIComponent(token)}&oauth=success`);
   } catch (error) {
     console.error('Google callback error:', error);
     return reply.redirect(`${normalizeFrontendUrl()}/?oauthError=callback_failed`);

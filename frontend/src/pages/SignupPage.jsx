@@ -98,7 +98,8 @@ const SignupPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = toApiUrl('/api/auth/google-login');
+    const frontendOrigin = encodeURIComponent(window.location.origin);
+    window.location.href = toApiUrl(`/api/auth/google-login?frontend=${frontendOrigin}`);
   };
 
   return (

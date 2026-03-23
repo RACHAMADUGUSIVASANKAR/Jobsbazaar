@@ -63,16 +63,18 @@ await fastify.register(cors, {
       return;
     }
 
-    // Phase 6: In production, REJECT preview domains explicitly
-    if (isProd && isVercelOrigin(normalizedOrigin)) {
-      console.warn(`[CORS] Production request rejected from Vercel preview: ${normalizedOrigin}`);
-      cb(new Error(`Production CORS: Vercel preview domains not allowed. Use configured FRONTEND_URL.`), false);
-      return;
-    }
+    // Allow Vercel preview URLs only when explicitly enabled.
+    if (isVercelOrigin(normalizedOrigin)) {
+      if (allowVercelPreview) {
+        cb(null, true);
+        return;
+      }
 
-    if (!isProd && allowVercelPreview && isVercelOrigin(normalizedOrigin)) {
-      cb(null, true);
-      return;
+      if (isProd) {
+        console.warn(`[CORS] Production request rejected from Vercel preview: ${normalizedOrigin}`);
+        cb(new Error('Production CORS: Vercel preview domains not allowed. Set CORS_ALLOW_VERCEL_PREVIEWS=true to allow.'));
+        return;
+      }
     }
 
     cb(new Error(`Origin not allowed by CORS: ${normalizedOrigin}`), false);
