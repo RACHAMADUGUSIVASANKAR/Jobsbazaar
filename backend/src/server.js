@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import jobRoutes, { appRoutes, adminRoutes } from './routes/jobRoutes.js';
 import assistantRoutes from './routes/assistantRoutes.js';
+import { ensureTestAccount } from './utils/ensureTestAccount.js';
 
 const trimTrailingSlash = (value = '') => String(value || '').replace(/\/+$/, '');
 const isProd = process.env.NODE_ENV === 'production';
@@ -92,6 +93,7 @@ await fastify.register(multipart, {
 
 // Connect to MongoDB (Maintain for legacy/coexistence)
 await connectDB();
+await ensureTestAccount();
 
 // Start Background Jobs
 cronJobs.start();

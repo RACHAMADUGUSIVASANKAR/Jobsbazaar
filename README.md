@@ -170,6 +170,25 @@ From `frontend/.env.example`:
 - `VITE_API_BASE_URL`
 - `VITE_LOCAL_API_TARGET`
 
+### Assignment Test Account
+- Email: `test@gmail.com`
+- Password: `test@123`
+
+Notes:
+- Backend auto-seeds this account at startup unless `ENABLE_TEST_ACCOUNT=false`.
+- If the account already exists, startup now syncs the configured test password to avoid stale-credential login failures.
+- On first login, users are guided to complete profile details and upload one resume (replace/update supported anytime).
+
+### Required Filter Coverage
+- Role/Title text search
+- Skills multi-select (React, Node.js, Python, etc.)
+- Date posted: Last 24 hours, Last week, Last month, Any time
+- Job Type: Full-time, Part-time, Contract, Internship
+- Work Mode: Remote, Hybrid, On-site
+- Location
+- Match Score: High, Medium, All
+- Clear Filters action to reset all active filters in one click
+
 ### Security Notes
 - Never commit real `.env` files.
 - Only commit `.env.example` templates.

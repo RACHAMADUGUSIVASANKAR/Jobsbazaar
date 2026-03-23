@@ -188,6 +188,10 @@ export const login = async (request, reply) => {
       return reply.status(400).send({ message: 'This account uses Google sign-in. Please click Continue with Google.' });
     }
 
+    if (!user.password) {
+      return reply.status(401).send({ message: 'Invalid email or password' });
+    }
+
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {

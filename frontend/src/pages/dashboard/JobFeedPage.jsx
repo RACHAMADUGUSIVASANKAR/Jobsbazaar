@@ -9,6 +9,30 @@ const VIRTUAL_ROW_HEIGHT = 360;
 const VIRTUAL_OVERSCAN = 5;
 const VIRTUALIZATION_THRESHOLD = 80;
 
+const SKILL_OPTIONS = [
+  'React',
+  'Node.js',
+  'Python',
+  'TypeScript',
+  'Java',
+  'AWS',
+  'Docker',
+  'Kubernetes',
+  'MongoDB',
+  'SQL'
+];
+
+const DEFAULT_FILTERS = {
+  role: '',
+  location: '',
+  skills: [],
+  category: 'All',
+  jobType: 'All',
+  workMode: 'All',
+  matchScore: 'All',
+  datePosted: 'Any time'
+};
+
 const normalizeWorkMode = (value = '') => value.toLowerCase().replace(/[\s-]+/g, '_');
 
 const normalizeDate = (job) => {
@@ -16,13 +40,12 @@ const normalizeDate = (job) => {
 };
 
 const filterByDatePosted = (job, datePostedFilter) => {
-  if (datePostedFilter === 'Any') return true;
+  if (datePostedFilter === 'Any time') return true;
 
   const days = {
     'Last 24 hours': 1,
-    'Last 3 days': 3,
-    'Last 7 days': 7,
-    'Last 30 days': 30
+    'Last week': 7,
+    'Last month': 30
   }[datePostedFilter];
 
   if (!days) return true;
@@ -52,15 +75,9 @@ const JobFeedPage = () => {
   const [virtualScrollTop, setVirtualScrollTop] = useState(0);
   const [virtualViewportHeight, setVirtualViewportHeight] = useState(720);
   const virtualListRef = useRef(null);
-  const [filters, setFilters] = useState({
-    role: '',
-    location: '',
-    skills: '',
-    category: 'All',
-    workMode: 'All',
-    matchScore: 'All',
-    datePosted: 'Any'
-  });
+  const skillsMenuRef = useRef(null);
+  const [skillsMenuOpen, setSkillsMenuOpen] = useState(false);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
   useEffect(() => {
     fetchDashboardData({ page: 1, append: false });
@@ -75,7 +92,16 @@ const JobFeedPage = () => {
 
   useEffect(() => {
     fetchDashboardData({ page: 1, append: false });
-  }, [filters.role, filters.location]);
+  }, [
+    filters.role,
+    filters.location,
+    filters.skills,
+    filters.category,
+    filters.jobType,
+    filters.workMode,
+    filters.matchScore,
+    filters.datePosted
+  ]);
 
   useEffect(() => {
     window.__jobFeedFilters = filters;
@@ -89,19 +115,17 @@ const JobFeedPage = () => {
       const incoming = event.detail || {};
 
       const incomingSkills = Array.isArray(incoming.skills)
-        ? incoming.skills.join(', ')
-        : (incoming.skills ?? filters.skills);
-
-      let incomingWorkMode = incoming.workMode ?? filters.workMode;
-      if (!incomingWorkMode && incoming.jobType) {
-        incomingWorkMode = incoming.jobType;
-      }
+        ? incoming.skills
+        : (typeof incoming.skills === 'string'
+          ? incoming.skills.split(',').map((item) => item.trim()).filter(Boolean)
+          : filters.skills);
 
       const nextFilters = {
         role: incoming.role ?? filters.role,
         location: incoming.location ?? filters.location,
         skills: incomingSkills,
-        workMode: incomingWorkMode,
+        jobType: incoming.jobType ?? filters.jobType,
+        workMode: incoming.workMode ?? filters.workMode,
         matchScore: incoming.matchScore ?? filters.matchScore,
         datePosted: incoming.datePosted ?? incoming.postedWithin ?? filters.datePosted
       };
@@ -127,6 +151,18 @@ const JobFeedPage = () => {
     window.addEventListener('assistantRefreshLiveJobs', handleAssistantRefresh);
     return () => window.removeEventListener('assistantRefreshLiveJobs', handleAssistantRefresh);
   }, [filters]);
+
+  useEffect(() => {
+    const handleOutside = (event) => {
+      if (!skillsMenuRef.current) return;
+      if (!skillsMenuRef.current.contains(event.target)) {
+        setSkillsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, []);
 
   useEffect(() => {
     const maxBackgroundLoad = Math.min(Number(totalJobs || 0) || 1000, 1000);
@@ -173,11 +209,12 @@ const JobFeedPage = () => {
       const queryParams = new URLSearchParams({
         role: filters.role || 'software',
         location: filters.location || '',
-        skills: filters.skills || '',
+        skills: (filters.skills || []).join(', '),
         category: filters.category || 'All',
+        jobType: filters.jobType || 'All',
         workMode: filters.workMode || 'All',
         matchScore: filters.matchScore || 'All',
-        datePosted: filters.datePosted || 'Any',
+        datePosted: filters.datePosted || 'Any time',
         page: String(page),
         pageSize: String(DEFAULT_PAGE_SIZE)
       });
@@ -195,8 +232,10 @@ const JobFeedPage = () => {
         const onboardingRequired =
           jobsResponse.status === 403 &&
           (jobsError?.code === 'ONBOARDING_REQUIRED'
+            || jobsError?.code === 'RESUME_REQUIRED'
             || `${jobsError?.message || ''}`.toLowerCase().includes('complete profile')
-            || `${jobsError?.message || ''}`.toLowerCase().includes('onboarding'));
+            || `${jobsError?.message || ''}`.toLowerCase().includes('onboarding')
+            || `${jobsError?.message || ''}`.toLowerCase().includes('upload your resume'));
 
         if (onboardingRequired) {
           setResumeRequired(true);
@@ -310,11 +349,25 @@ const JobFeedPage = () => {
   const activeFilters = [
     filters.role ? `Role: ${filters.role}` : '',
     filters.location ? `Location: ${filters.location}` : '',
-    filters.skills ? `Skill: ${filters.skills}` : '',
+    filters.skills.length ? `Skills: ${filters.skills.join(', ')}` : '',
+    filters.jobType !== 'All' ? `Type: ${filters.jobType}` : '',
     filters.workMode !== 'All' ? `Mode: ${filters.workMode}` : '',
     filters.matchScore !== 'All' ? `Score: ${filters.matchScore}` : '',
-    filters.datePosted !== 'Any' ? `Date: ${filters.datePosted}` : ''
+    filters.datePosted !== 'Any time' ? `Date: ${filters.datePosted}` : ''
   ].filter(Boolean);
+
+  const handleSkillToggle = (skill) => {
+    const hasSkill = filters.skills.includes(skill);
+    const nextSkills = hasSkill
+      ? filters.skills.filter((item) => item !== skill)
+      : [...filters.skills, skill];
+    setFilters({ ...filters, skills: nextSkills });
+  };
+
+  const clearFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+    setSkillsMenuOpen(false);
+  };
 
   const handleRefreshLiveJobs = async () => {
     try {
@@ -470,25 +523,48 @@ const JobFeedPage = () => {
 
         <div className="feed-filters">
           <input
-            className={highlightedFilter === 'role' ? 'filter-highlight' : ''}
+            className={`filter-control filter-control--role ${highlightedFilter === 'role' ? 'filter-highlight' : ''}`}
             value={filters.role}
             placeholder="Role or company"
             onChange={(e) => setFilters({ ...filters, role: e.target.value })}
           />
           <input
-            className={highlightedFilter === 'location' ? 'filter-highlight' : ''}
+            className={`filter-control ${highlightedFilter === 'location' ? 'filter-highlight' : ''}`}
             value={filters.location}
             placeholder="Location"
             onChange={(e) => setFilters({ ...filters, location: e.target.value })}
           />
-          <input
-            className={highlightedFilter === 'skills' ? 'filter-highlight' : ''}
-            value={filters.skills}
-            placeholder="Skill keyword"
-            onChange={(e) => setFilters({ ...filters, skills: e.target.value })}
-          />
+
+          <div className="skills-filter" ref={skillsMenuRef}>
+            <button
+              type="button"
+              className={`skills-filter__trigger filter-control ${highlightedFilter === 'skills' ? 'filter-highlight' : ''}`}
+              onClick={() => setSkillsMenuOpen((prev) => !prev)}
+            >
+              {filters.skills.length ? `${filters.skills.length} skills selected` : 'Select skills'}
+            </button>
+
+            {skillsMenuOpen && (
+              <div className="skills-filter__menu">
+                {SKILL_OPTIONS.map((skill) => {
+                  const checked = filters.skills.includes(skill);
+                  return (
+                    <label key={skill} className="skills-filter__option">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => handleSkillToggle(skill)}
+                      />
+                      <span>{skill}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <select
-            className={highlightedFilter === 'category' ? 'filter-highlight' : ''}
+            className={`filter-control ${highlightedFilter === 'category' ? 'filter-highlight' : ''}`}
             value={filters.category}
             onChange={(e) => setFilters({ ...filters, category: e.target.value })}
           >
@@ -505,19 +581,30 @@ const JobFeedPage = () => {
             <option value="internship">Internship</option>
           </select>
           <select
-            className={highlightedFilter === 'workMode' ? 'filter-highlight' : ''}
+            className={`filter-control ${highlightedFilter === 'jobType' ? 'filter-highlight' : ''}`}
+            value={filters.jobType}
+            onChange={(e) => setFilters({ ...filters, jobType: e.target.value })}
+          >
+            <option value="All">All Job Types</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Contract">Contract</option>
+            <option value="Internship">Internship</option>
+          </select>
+
+          <select
+            className={`filter-control ${highlightedFilter === 'workMode' ? 'filter-highlight' : ''}`}
             value={filters.workMode}
             onChange={(e) => setFilters({ ...filters, workMode: e.target.value })}
           >
             <option value="All">All Work Modes</option>
-            <option value="Full Time">Full Time</option>
-            <option value="Part Time">Part Time</option>
-            <option value="Contract">Contract</option>
             <option value="Remote">Remote</option>
+            <option value="Hybrid">Hybrid</option>
+            <option value="On-site">On-site</option>
           </select>
 
           <select
-            className={highlightedFilter === 'matchScore' ? 'filter-highlight' : ''}
+            className={`filter-control ${highlightedFilter === 'matchScore' ? 'filter-highlight' : ''}`}
             value={filters.matchScore}
             onChange={(e) => setFilters({ ...filters, matchScore: e.target.value })}
           >
@@ -528,16 +615,23 @@ const JobFeedPage = () => {
           </select>
 
           <select
-            className={highlightedFilter === 'datePosted' ? 'filter-highlight' : ''}
+            className={`filter-control ${highlightedFilter === 'datePosted' ? 'filter-highlight' : ''}`}
             value={filters.datePosted}
             onChange={(e) => setFilters({ ...filters, datePosted: e.target.value })}
           >
-            <option value="Any">Any Date</option>
+            <option value="Any time">Any time</option>
             <option value="Last 24 hours">Last 24 hours</option>
-            <option value="Last 3 days">Last 3 days</option>
-            <option value="Last 7 days">Last 7 days</option>
-            <option value="Last 30 days">Last 30 days</option>
+            <option value="Last week">Last week</option>
+            <option value="Last month">Last month</option>
           </select>
+
+          <button
+            type="button"
+            className="clear-filters-btn"
+            onClick={clearFilters}
+          >
+            Clear Filters
+          </button>
         </div>
       </div>
 
@@ -581,10 +675,13 @@ const JobFeedPage = () => {
       ) : resumeRequired ? (
         <div className="no-jobs no-jobs--error">
           <h4>Complete Profile To Unlock Job Matches</h4>
-          <p>Add your name, gender, and at least one skill in Profile to unlock dashboard modules.</p>
+          <p>Add required profile details and upload your resume to unlock AI-matched job feeds.</p>
           <div className="no-jobs__actions">
             <button className="live-refresh-btn" onClick={() => navigate('/dashboard/profile')}>
               Go To Profile
+            </button>
+            <button className="live-refresh-btn" onClick={() => navigate('/upload-resume')}>
+              Upload Resume
             </button>
           </div>
         </div>

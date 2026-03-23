@@ -76,10 +76,10 @@ const AIAssistantPanel = () => {
             role: incoming.role || '',
             location: incoming.location || '',
             skills: Array.isArray(incoming.skills) ? incoming.skills.join(', ') : (incoming.skills || ''),
+            jobType: incoming.jobType || 'All',
             workMode: incoming.workMode || 'All',
             matchScore: incoming.matchScore || 'All',
-            datePosted: incoming.datePosted || 'Any',
-            jobType: incoming.jobType || ''
+            datePosted: incoming.datePosted || 'Any time'
           }
         }));
       }

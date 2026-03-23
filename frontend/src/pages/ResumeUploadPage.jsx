@@ -13,11 +13,17 @@ const ResumeUploadPage = () => {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      if (selectedFile.type === 'application/pdf' || selectedFile.type === 'text/plain') {
+      const allowedTypes = [
+        'application/pdf',
+        'text/plain',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+
+      if (allowedTypes.includes(selectedFile.type)) {
         setFile(selectedFile);
         setError('');
       } else {
-        setError('Only PDF and TXT files are allowed.');
+        setError('Only PDF, DOCX, and TXT files are allowed.');
         setFile(null);
       }
     }
@@ -68,7 +74,7 @@ const ResumeUploadPage = () => {
           <input
             type="file"
             id="resume-file"
-            accept=".pdf,.txt"
+            accept=".pdf,.docx,.txt"
             onChange={handleFileChange}
             hidden
           />
@@ -82,7 +88,7 @@ const ResumeUploadPage = () => {
               <div className="upload-prompt">
                 <FiUpload size={48} color="#393E46" />
                 <span>Drag & Drop or Click to Upload</span>
-                <span className="file-types">Supported: PDF, TXT</span>
+                <span className="file-types">Supported: PDF, DOCX, TXT</span>
               </div>
             )}
           </label>

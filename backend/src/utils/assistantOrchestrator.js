@@ -16,10 +16,10 @@ const DEFAULT_FILTERS = {
   role: "",
   skills: [],
   location: "",
-  jobType: "",
-  workMode: "",
-  datePosted: "",
-  matchScore: ""
+  jobType: "All",
+  workMode: "All",
+  datePosted: "Any time",
+  matchScore: "All"
 };
 
 const HELP_RESPONSES = {
@@ -66,19 +66,18 @@ const mergeFilters = (base = {}, incoming = {}) => {
 
 const normalizeWorkMode = (value = "") => {
   const raw = String(value || "").trim().toLowerCase();
-  if (!raw) return "";
+  if (!raw) return "All";
   if (raw.includes("remote") || raw.includes("wfh")) return "Remote";
-  if (raw.includes("full")) return "Full Time";
-  if (raw.includes("part")) return "Part Time";
-  if (raw.includes("contract") || raw.includes("freelance")) return "Contract";
+  if (raw.includes("hybrid")) return "Hybrid";
+  if (raw.includes("on-site") || raw.includes("onsite") || raw.includes("office")) return "On-site";
   return value;
 };
 
 const normalizeJobType = (value = "") => {
   const raw = String(value || "").trim().toLowerCase();
-  if (!raw) return "";
-  if (raw.includes("full")) return "Full Time";
-  if (raw.includes("part")) return "Part Time";
+  if (!raw) return "All";
+  if (raw.includes("full")) return "Full-time";
+  if (raw.includes("part")) return "Part-time";
   if (raw.includes("contract") || raw.includes("freelance")) return "Contract";
   if (raw.includes("intern")) return "Internship";
   return value;
@@ -86,7 +85,7 @@ const normalizeJobType = (value = "") => {
 
 const normalizeMatchScore = (value = "") => {
   const raw = String(value || "").trim().toLowerCase();
-  if (!raw) return "";
+  if (!raw) return "All";
   if (raw.includes("high") || raw.includes("strong")) return "High";
   if (raw.includes("medium") || raw.includes("mid")) return "Medium";
   if (raw.includes("low")) return "Low";
@@ -96,12 +95,11 @@ const normalizeMatchScore = (value = "") => {
 
 const normalizeDatePosted = (value = "") => {
   const raw = String(value || "").trim().toLowerCase();
-  if (!raw) return "";
+  if (!raw) return "Any time";
   if (raw.includes("24") || raw.includes("today")) return "Last 24 hours";
-  if (raw.includes("3")) return "Last 3 days";
-  if (raw.includes("7") || raw.includes("week")) return "Last 7 days";
-  if (raw.includes("30") || raw.includes("month")) return "Last 30 days";
-  if (raw.includes("any") || raw.includes("all")) return "Any";
+  if (raw.includes("week") || raw.includes("7")) return "Last week";
+  if (raw.includes("month") || raw.includes("30")) return "Last month";
+  if (raw.includes("any") || raw.includes("all")) return "Any time";
   return value;
 };
 
@@ -191,16 +189,18 @@ const deterministicIntent = (message = "", context = {}) => {
   const nextFilters = mergeFilters(DEFAULT_FILTERS, context || {});
 
   if (low.includes("remote")) nextFilters.workMode = "Remote";
-  if (low.includes("full-time") || low.includes("full time")) nextFilters.jobType = "Full Time";
-  if (low.includes("part-time") || low.includes("part time")) nextFilters.jobType = "Part Time";
+  if (low.includes("hybrid")) nextFilters.workMode = "Hybrid";
+  if (low.includes("on-site") || low.includes("onsite")) nextFilters.workMode = "On-site";
+  if (low.includes("full-time") || low.includes("full time")) nextFilters.jobType = "Full-time";
+  if (low.includes("part-time") || low.includes("part time")) nextFilters.jobType = "Part-time";
   if (low.includes("contract")) nextFilters.jobType = "Contract";
   if (low.includes("intern")) nextFilters.jobType = "Internship";
 
   if (low.includes("high match") || low.includes("best match") || low.includes("70")) {
     nextFilters.matchScore = "High";
   }
-  if (low.includes("this week") || low.includes("last 7 days")) {
-    nextFilters.datePosted = "Last 7 days";
+  if (low.includes("this week") || low.includes("last week") || low.includes("last 7 days")) {
+    nextFilters.datePosted = "Last week";
   }
   if (low.includes("today") || low.includes("last 24")) {
     nextFilters.datePosted = "Last 24 hours";
@@ -340,9 +340,10 @@ const actionNode = async (state) => {
     role: filters.role,
     location: filters.location,
     skills: filters.skills.join(", "),
+    jobType: filters.jobType || "All",
     workMode: filters.workMode || "All",
     matchScore: filters.matchScore || "All",
-    datePosted: filters.datePosted || "Any"
+    datePosted: filters.datePosted || "Any time"
   };
 
   const actions = intent === "filter_update"

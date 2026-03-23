@@ -55,15 +55,15 @@ const ResumeGuard = ({ mode, children }) => {
       }
 
       let onboardingCompleted = false;
+      let hasResume = false;
       if (response.ok) {
         const data = await response.json();
         onboardingCompleted = Boolean(data?.onboardingCompleted || data?.onboardingComplete);
+        hasResume = Boolean(data?.hasResume || data?.resumeText);
       }
 
       if (mode === 'onboarding-lock') {
-        if (onboardingCompleted) {
-          setAllowed(true);
-        } else {
+        if (!onboardingCompleted) {
           const isProfileRoute = location.pathname.startsWith('/dashboard/profile');
           if (isProfileRoute) {
             setAllowed(true);
@@ -71,6 +71,17 @@ const ResumeGuard = ({ mode, children }) => {
             navigate('/dashboard/profile', { replace: true });
             setAllowed(false);
           }
+          return;
+        }
+
+        if (!hasResume) {
+          navigate('/upload-resume', { replace: true });
+          setAllowed(false);
+          return;
+        }
+
+        if (onboardingCompleted && hasResume) {
+          setAllowed(true);
         }
       }
     } catch (error) {
@@ -169,9 +180,7 @@ function App() {
         path="/upload-resume"
         element={
           <AuthenticatedRoute>
-            <ResumeGuard mode="onboarding-lock">
-              <ResumeUploadPage />
-            </ResumeGuard>
+            <ResumeUploadPage />
           </AuthenticatedRoute>
         }
       />

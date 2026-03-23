@@ -5,6 +5,7 @@ import './AppliedJobsPage.css';
 const AppliedJobsPage = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState('');
 
   useEffect(() => {
     fetchApplications();
@@ -23,6 +24,37 @@ const AppliedJobsPage = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (application, nextStatus) => {
+    if (!application?.jobId || !nextStatus) return;
+
+    try {
+      setUpdatingId(String(application.id));
+      const response = await fetch(`/api/jobs/${application.jobId}/apply`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: nextStatus })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update application status');
+      }
+
+      setApplications((prev) => prev.map((item) => {
+        if (item.id !== application.id) return item;
+        const nextTimeline = Array.isArray(item.timeline) ? [...item.timeline] : [];
+        nextTimeline.push({ status: nextStatus, date: new Date().toISOString() });
+        return { ...item, status: nextStatus, timeline: nextTimeline };
+      }));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setUpdatingId('');
     }
   };
 
@@ -53,6 +85,22 @@ const AppliedJobsPage = () => {
                     <span className="status-badge closed">Job Closed</span>
                   )}
                   <span className="app-date">Applied on {new Date(app.timestamp).toLocaleDateString()}</span>
+                </div>
+
+                <div className="app-card__actions">
+                  <label htmlFor={`status-${app.id}`} className="status-label">Update Status</label>
+                  <select
+                    id={`status-${app.id}`}
+                    className="status-select"
+                    value={app.status}
+                    onChange={(e) => handleStatusUpdate(app, e.target.value)}
+                    disabled={updatingId === String(app.id)}
+                  >
+                    <option value="Applied">Applied</option>
+                    <option value="Interview">Interview</option>
+                    <option value="Offer">Offer</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
                 </div>
 
                 <div className="app-card__timeline">

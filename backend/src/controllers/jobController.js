@@ -25,8 +25,16 @@ const parsePositiveInt = (value, fallback, { min = 1, max = Number.MAX_SAFE_INTE
 
 const buildMongoFeedQuery = ({ role = '', location = '', query = {} } = {}) => {
   const mongoQuery = { isActive: true };
+  const andConditions = [];
+  const addAndCondition = (condition) => {
+    if (condition && Object.keys(condition).length) {
+      andConditions.push(condition);
+    }
+  };
+
   const roleText = String(role || query.role || '').trim();
   const locationText = String(location || query.location || '').trim();
+  const jobType = String(query.jobType || '').trim();
   const workMode = String(query.workMode || '').trim();
   const scoreBand = String(query.matchScore || '').trim();
   const skillsText = String(query.skills || '').trim();
@@ -34,40 +42,88 @@ const buildMongoFeedQuery = ({ role = '', location = '', query = {} } = {}) => {
   const category = String(query.category || '').trim();
 
   if (roleText) {
-    mongoQuery.$or = [
-      { title: { $regex: roleText, $options: 'i' } },
-      { company: { $regex: roleText, $options: 'i' } },
-      { description: { $regex: roleText, $options: 'i' } }
-    ];
+    addAndCondition({
+      $or: [
+        { title: { $regex: roleText, $options: 'i' } },
+        { company: { $regex: roleText, $options: 'i' } },
+        { description: { $regex: roleText, $options: 'i' } }
+      ]
+    });
   }
 
   if (locationText) {
-    mongoQuery.location = { $regex: locationText, $options: 'i' };
+    addAndCondition({ location: { $regex: locationText, $options: 'i' } });
   }
 
   if (skillsText) {
-    mongoQuery.description = { $regex: skillsText, $options: 'i' };
+    const skillTokens = skillsText
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (skillTokens.length) {
+      addAndCondition({
+        $or: skillTokens.map((skill) => ({ description: { $regex: skill, $options: 'i' } }))
+      });
+    }
   }
 
   if (category && category !== 'All') {
-    mongoQuery.domainCategory = category.toLowerCase();
+    addAndCondition({ domainCategory: category.toLowerCase() });
+  }
+
+  if (jobType && jobType !== 'All') {
+    const normalizedJobType = String(jobType).toLowerCase();
+    const typeRegexMap = {
+      'full-time': /(full\s*[- ]?time)/i,
+      'part-time': /(part\s*[- ]?time)/i,
+      contract: /(contract|freelance|temporary)/i,
+      internship: /(intern|internship|trainee)/i
+    };
+
+    if (typeRegexMap[normalizedJobType]) {
+      addAndCondition({
+        $or: [
+          { contract_time: typeRegexMap[normalizedJobType] },
+          { description: typeRegexMap[normalizedJobType] },
+          { title: typeRegexMap[normalizedJobType] }
+        ]
+      });
+    }
   }
 
   if (workMode && workMode !== 'All') {
-    mongoQuery.contract_time = { $regex: workMode, $options: 'i' };
+    const normalizedWorkMode = String(workMode).toLowerCase();
+    const modeRegexMap = {
+      remote: /(remote|work\s*from\s*home|wfh)/i,
+      hybrid: /(hybrid)/i,
+      'on-site': /(on\s*[- ]?site|onsite|office)/i
+    };
+
+    if (modeRegexMap[normalizedWorkMode]) {
+      addAndCondition({
+        $or: [
+          { description: modeRegexMap[normalizedWorkMode] },
+          { location: modeRegexMap[normalizedWorkMode] },
+          { contract_time: modeRegexMap[normalizedWorkMode] }
+        ]
+      });
+    }
   }
 
   if (scoreBand === 'High') {
-    mongoQuery.matchScore = { $gte: 70 };
+    addAndCondition({ matchScore: { $gte: 70 } });
   } else if (scoreBand === 'Medium') {
-    mongoQuery.matchScore = { $gte: 40, $lt: 70 };
+    addAndCondition({ matchScore: { $gte: 40, $lt: 70 } });
   } else if (scoreBand === 'Low') {
-    mongoQuery.matchScore = { $lt: 40 };
+    addAndCondition({ matchScore: { $lt: 40 } });
   }
 
-  if (datePosted && datePosted !== 'Any') {
+  if (datePosted && datePosted !== 'Any' && datePosted !== 'Any time') {
     const mapping = {
       'Last 24 hours': 1,
+      'Last week': 7,
+      'Last month': 30,
       'Last 3 days': 3,
       'Last 7 days': 7,
       'Last 30 days': 30
@@ -75,8 +131,12 @@ const buildMongoFeedQuery = ({ role = '', location = '', query = {} } = {}) => {
     const days = mapping[datePosted];
     if (days) {
       const start = new Date(Date.now() - (days * 24 * 60 * 60 * 1000));
-      mongoQuery.createdAt = { $gte: start };
+      addAndCondition({ createdAt: { $gte: start } });
     }
+  }
+
+  if (andConditions.length > 0) {
+    mongoQuery.$and = andConditions;
   }
 
   return mongoQuery;

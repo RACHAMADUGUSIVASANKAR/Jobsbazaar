@@ -34,6 +34,13 @@ export const checkResume = async (request, reply) => {
       message: 'Complete profile details (name, gender, and skills) to unlock dashboard features.'
     });
   }
+
+  if (!onboarding.hasResume) {
+    return reply.status(403).send({
+      code: 'RESUME_REQUIRED',
+      message: 'Upload your resume (PDF, DOCX, or TXT) to unlock AI job matching and dashboard features.'
+    });
+  }
 };
 
 export default verifyToken;
